@@ -58,3 +58,6 @@ build/
 
 ### VS Code ###
 .vscode/*
+
+
+smart-home-energy-management/src/main/resources/application.properties
