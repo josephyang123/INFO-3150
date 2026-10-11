@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f1f2f4">
+    <title>Family Dashboard | Smart Home Energy Management System</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/family-dashboard.js" defer></script>
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <a class="wordmark" href="/html/index.html">Smart Home Energy Management System</a>
+        <div class="dashboard-header-actions">
+            <!-- Prototype only: this link returns to welcome and does not end a session. TODO (Backend): invalidate the session here once authentication exists. -->
+            <a class="exit-preview" href="/html/index.html">Sign Out</a>
+        </div>
+    </header>
+
+    <main class="dashboard-main family-dashboard-main">
+        <section class="dashboard-heading" aria-labelledby="dashboard-title">
+            <div>
+                <p class="eyebrow">SMART HOME</p>
+                <h1 id="dashboard-title">Family dashboard</h1>
+                <p class="dashboard-description">Your home and assigned device access.</p>
+            </div>
+        </section>
+
+        <section class="family-account-card dashboard-card" aria-labelledby="family-account-title">
+            <p class="eyebrow">FAMILY ACCOUNT</p>
+            <h2 id="family-account-title">Family member</h2>
+            <p id="familyAccountDisplay">Alex Morgan</p>
+        </section>
+
+        <section class="energy-overview dashboard-card" id="energySummary" aria-labelledby="energy-title">
+            <div class="energy-reading-group">
+                <p class="eyebrow" id="energy-title">ENERGY TODAY</p>
+                <div class="energy-reading-detail">
+                    <p class="energy-reading"><span>2.4</span> <span class="energy-unit">kWh</span></p>
+                    <time class="energy-date" id="energyDate"></time>
+                </div>
+            </div>
+            <figure class="energy-history">
+                <figcaption class="energy-history-heading">
+                    <p>Sample daily use · kWh</p>
+                </figcaption>
+                <!-- TODO (backend/DB): replace fixed sample kWh values with readings from the agreed energy API and persisted data. -->
+                <div class="energy-chart" role="img" aria-label="Sample daily energy use for the last seven days">
+                    <div class="energy-chart-plot" aria-hidden="true">
+                        <span class="energy-chart-bar" data-kwh="1.8"></span>
+                        <span class="energy-chart-bar" data-kwh="2.1"></span>
+                        <span class="energy-chart-bar" data-kwh="1.6"></span>
+                        <span class="energy-chart-bar" data-kwh="2.7"></span>
+                        <span class="energy-chart-bar" data-kwh="2.3"></span>
+                        <span class="energy-chart-bar" data-kwh="3.1"></span>
+                        <span class="energy-chart-bar" data-kwh="2.4"></span>
+                    </div>
+                    <div class="energy-chart-labels" aria-hidden="true">
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                    </div>
+                </div>
+            </figure>
+        </section>
+
+        <section class="device-section dashboard-section dashboard-card" id="deviceSection" aria-labelledby="devices-title">
+            <div class="section-heading">
+                <h2 id="devices-title">Your devices</h2>
+                <span class="section-count" id="deviceCount">1 device</span>
+            </div>
+            <div class="device-list" id="deviceList" aria-live="polite"></div>
+            <p class="empty-state" id="deviceEmpty" hidden>No devices are assigned to this account.</p>
+        </section>
+
+        <section class="family-no-access dashboard-card" id="noDeviceAccess" hidden>
+            <h2>No device access</h2>
+            <p>Ask the homeowner to assign access to devices in this home.</p>
+        </section>
+    </main>
+</body>
+</html>

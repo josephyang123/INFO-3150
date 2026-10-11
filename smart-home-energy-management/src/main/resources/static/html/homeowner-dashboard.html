@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f1f2f4">
+    <title>Homeowner Dashboard | Smart Home Energy Management System</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/homeowner-dashboard.js" defer></script>
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <a class="wordmark" href="/html/index.html">Smart Home Energy Management System</a>
+        <div class="dashboard-header-actions">
+            <!-- Prototype only: this link returns to welcome and does not end a session. TODO (Backend): invalidate the session here once authentication exists. -->
+            <a class="exit-preview" href="/html/index.html">Sign Out</a>
+        </div>
+    </header>
+
+    <main class="dashboard-main">
+        <section class="dashboard-heading" aria-labelledby="dashboard-title">
+            <div>
+                <p class="eyebrow">HOME OVERVIEW</p>
+                <h1 id="dashboard-title">Homeowner dashboard</h1>
+                <p class="dashboard-description">Manage your home, devices, and family access.</p>
+            </div>
+        </section>
+
+        <section class="energy-overview dashboard-card" aria-labelledby="energy-title">
+            <div class="energy-reading-group">
+                <p class="eyebrow" id="energy-title">ENERGY TODAY</p>
+                <div class="energy-reading-detail">
+                    <p class="energy-reading"><span>2.4</span> <span class="energy-unit">kWh</span></p>
+                    <time class="energy-date" id="energyDate"></time>
+                </div>
+            </div>
+            <figure class="energy-history">
+                <figcaption class="energy-history-heading">
+                    <p>Sample daily use · kWh</p>
+                </figcaption>
+                <!-- TODO (backend/DB): replace fixed sample kWh values with readings from the agreed energy API and persisted data. -->
+                <div class="energy-chart" role="img" aria-label="Sample daily energy use for the last seven days">
+                    <div class="energy-chart-plot" aria-hidden="true">
+                        <span class="energy-chart-bar" data-kwh="1.8"></span>
+                        <span class="energy-chart-bar" data-kwh="2.1"></span>
+                        <span class="energy-chart-bar" data-kwh="1.6"></span>
+                        <span class="energy-chart-bar" data-kwh="2.7"></span>
+                        <span class="energy-chart-bar" data-kwh="2.3"></span>
+                        <span class="energy-chart-bar" data-kwh="3.1"></span>
+                        <span class="energy-chart-bar" data-kwh="2.4"></span>
+                    </div>
+                    <div class="energy-chart-labels" aria-hidden="true">
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day"></span>
+                    </div>
+                </div>
+            </figure>
+        </section>
+
+        <div class="dashboard-columns">
+            <section class="device-section dashboard-section dashboard-card" aria-labelledby="devices-title">
+                <div class="section-heading">
+                    <h2 id="devices-title">Devices</h2>
+                    <span class="section-count" id="deviceCount">1 device</span>
+                </div>
+                <div class="device-list" id="deviceList" aria-live="polite"></div>
+                <p class="empty-state" id="deviceEmpty" hidden>No devices have been added.</p>
+                <form class="add-device-form" id="addDeviceForm">
+                    <label for="newDeviceType">Add a device</label>
+                    <p class="control-description">Choose a device type to add to your home.</p>
+                    <div class="add-device-controls">
+                        <select id="newDeviceType" name="deviceType">
+                            <option value="light">Smart light</option>
+                            <option value="thermostat">Smart thermostat</option>
+                            <option value="plug">Smart plug</option>
+                        </select>
+                        <button class="action action-primary" type="submit">Add device</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="permission-section dashboard-section dashboard-card" aria-labelledby="permissions-title">
+                <div class="permission-heading">
+                    <h2 id="permissions-title">Family permissions</h2>
+                </div>
+                <form class="permission-form" id="permissionsForm">
+                    <div class="permission-account">
+                        <label for="familyAccount">Family member</label>
+                        <select id="familyAccount" name="familyAccount" required>
+                            <option value="alex.morgan">Alex Morgan</option>
+                            <option value="sam.lee">Sam Lee</option>
+                        </select>
+                    </div>
+                    <fieldset class="permission-fieldset">
+                        <legend>Allowed actions</legend>
+                        <label class="permission-option">
+                            <input type="checkbox" id="familyCanView" checked>
+                            <span><strong>View devices</strong><small>See the list of devices in the home.</small></span>
+                        </label>
+                        <label class="permission-option">
+                            <input type="checkbox" id="familyCanControl" checked>
+                            <span><strong>Control devices</strong><small>Turn devices on or off.</small></span>
+                        </label>
+                        <label class="permission-option">
+                            <input type="checkbox" id="familyCanViewEnergy" checked>
+                            <span><strong>View energy usage</strong><small>See home energy readings.</small></span>
+                        </label>
+                    </fieldset>
+                    <div class="permission-actions">
+                        <button class="action action-primary" type="submit">Save permissions</button>
+                        <p class="permission-status" id="permissionStatus" role="status"></p>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
