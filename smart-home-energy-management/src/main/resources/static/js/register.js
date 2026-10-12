@@ -54,7 +54,7 @@ form.addEventListener("submit", async (event) => {
     if (response.ok) {
         // alert("Registration successful! Redirecting to login page...");
         document.getElementById("registerError").textContent = "Registration successful! Redirecting to login page...";
-        window.location.href = "/login";
+        window.location.href = "/html/login.html";
     } else {
         
         const errorData = await response.json();
