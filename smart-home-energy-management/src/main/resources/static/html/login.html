@@ -7,19 +7,27 @@
     <link rel="stylesheet" href="/css/styles.css">  
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            
-            <button type="submit">Login</button>
-        </form>
-        <p id="loginError" class="error-message"></p>
-        <p>Don't have an account? <a href="register.html">Register here</a></p>
-    </div>
-
-    <script src="/js/login.js"></script>
+    <main class="page-shell account-page">
+        <a class="wordmark" href="/html/index.html">Smart Home Energy Management System</a>
+        <section class="account-content" aria-labelledby="login-title">
+            <a class="back-link" href="/html/index.html">&larr; Home</a>
+            <h1 id="login-title">Log in</h1>
+            <p class="form-intro">Welcome back. Sign in to your account.</p>
+            <form id="loginForm" class="account-form">
+                <div class="form-field">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" autocomplete="email" placeholder="Email" required>
+                </div>
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" autocomplete="current-password" placeholder="Password" required>
+                </div>
+                <button class="action action-primary" type="submit">Log in</button>
+                <p id="loginError" class="form-message" aria-live="polite"></p>
+            </form>
+            <p class="account-switch">New here? <a href="/html/register.html">Create an account</a></p>
+        </section>
+    </main>
+    <script src="/js/login.js" defer></script>
+</body>
+</html>

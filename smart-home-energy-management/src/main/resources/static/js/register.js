@@ -42,6 +42,7 @@ form.addEventListener("submit", async (event) => {
         return;
     }
 
+    // Frontend API call: POST /api/register with username, email, and password. 
     const response = await fetch("/api/register", {
         method: "POST",
         headers: {
@@ -49,9 +50,9 @@ form.addEventListener("submit", async (event) => {
         },
         body: JSON.stringify({ username, email, password }),
     });
-
+ 
     if (response.ok) {
-        alert("Registration successful! Redirecting to login page...");
+        // alert("Registration successful! Redirecting to login page...");
         document.getElementById("registerError").textContent = "Registration successful! Redirecting to login page...";
         window.location.href = "/login";
     } else {

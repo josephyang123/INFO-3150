@@ -31,6 +31,10 @@ public class RegisterService {
             throw new ResponseStatusException(400, "Password must be at least 8 characters long", null);
         }
 
+        if(registerRepository.existsByEmail(request.email())){
+            throw new ResponseStatusException(400, "Email already exists", null);
+        }
+
         String hashedPassword = passwordEncoder.encode(request.password());
 
         User user = new User( request.username(), request.email(), hashedPassword);
