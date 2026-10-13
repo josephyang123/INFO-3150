@@ -33,9 +33,20 @@ function saveStoredValue(key, value) {
     }
 }
 
-let devices = readStoredValue(storageKeys.devices, starterDevices);
-if (!Array.isArray(devices)) {
-    devices = starterDevices;
+let devices = [];
+
+async function loadDevices(){
+    const response = await fetch("/api/devices");
+
+    if(!response.ok){
+        throw new Error("Failed to load devices");
+    }
+
+    devices = await response.json();
+
+
+    console.log("Devices:", devices);
+    renderDevices();
 }
 
 const permissionDefaults = {
@@ -108,7 +119,7 @@ function renderEnergyHistory() {
     );
 }
 
-let nextDeviceId = devices.reduce((nextId, device) => Math.max(nextId, device.id + 1), 1);
+let nextDeviceId = devices.reduce((nextId, device) => Math.max(nextId, device.device_id + 1), 1);
 
 function createDeviceRow(device) {
     const row = document.createElement("article");
@@ -120,13 +131,13 @@ function createDeviceRow(device) {
     const mark = document.createElement("span");
     mark.className = "device-mark";
     mark.setAttribute("aria-hidden", "true");
-    mark.textContent = device.mark;
+    mark.textContent = device.device_name.charAt(0).toUpperCase();
 
     const description = document.createElement("div");
     const name = document.createElement("h3");
-    name.textContent = device.name;
+    name.textContent = device.device_name;
     const detail = document.createElement("p");
-    detail.textContent = `${device.type} · ${device.location}`;
+    detail.textContent = `${device.device_type} · ${device.manufacturer}`;
     description.append(name, detail);
     identity.append(mark, description);
 
@@ -135,34 +146,70 @@ function createDeviceRow(device) {
 
     const state = document.createElement("span");
     state.className = "device-state";
-    state.textContent = device.isOn ? "On" : "Off";
+    state.textContent = device.powered_state ? "On" : "Off";
 
     const toggle = document.createElement("button");
     toggle.className = "device-toggle";
     toggle.type = "button";
     toggle.setAttribute("role", "switch");
-    toggle.setAttribute("aria-checked", String(device.isOn));
-    toggle.setAttribute("aria-label", `Turn ${device.name} ${device.isOn ? "off" : "on"}`);
+    toggle.setAttribute("aria-checked", String(device.powered_state));
+    toggle.setAttribute("aria-label", `Turn ${device.device_name} ${device.powered_state ? "off" : "on"}`);
     const thumb = document.createElement("span");
     thumb.className = "toggle-thumb";
     thumb.setAttribute("aria-hidden", "true");
     toggle.append(thumb);
-    toggle.addEventListener("click", () => {
-        device.isOn = !device.isOn;
+    toggle.addEventListener("click", async () => {
+        device.powered_state = !device.powered_state;
         saveStoredValue(storageKeys.devices, devices);
         renderDevices();
     });
+    //     try {
+    //         const response = await fetch(`/api/devices/${device.device_id}`, {
+    //             method: "PATCH",
+    //             headers: {
+    //                 "Content-Type": "application/json"
+    //             },
+    //             body: JSON.stringify({
+    //                 isOn: !device.powered_state
+    //             })
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error("Failed to update device");
+    //         }
+
+    //         await loadDevices();
+
+    //     } catch (error) {
+    //         alert(error.message);
+    //     }
+    // });
 
     const remove = document.createElement("button");
     remove.className = "remove-device";
     remove.type = "button";
     remove.textContent = "Remove";
-    remove.setAttribute("aria-label", `Remove ${device.name}`);
-    remove.addEventListener("click", () => {
-        devices = devices.filter((item) => item.id !== device.id);
+    remove.setAttribute("aria-label", `Remove ${device.device_name}`);
+    remove.addEventListener("click", async () => {
+        devices = devices.filter((item) => item.device_id !== device.device_id);
         saveStoredValue(storageKeys.devices, devices);
         renderDevices();
     });
+    //     try {
+    //         const response = await fetch(`/api/devices/${device.device_id}`, {
+    //             method: "DELETE"
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error("Failed to remove device");
+    //         }
+
+    //         await loadDevices();
+
+    //     } catch (error) {
+    //         alert(error.message);
+    //     }
+    // });
 
     controls.append(state, toggle, remove);
     row.append(identity, controls);
@@ -202,7 +249,7 @@ permissionsForm.addEventListener("submit", (event) => {
         : "Could not save these preview settings in this browser.";
 });
 
-addDeviceForm.addEventListener("submit", (event) => {
+addDeviceForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const deviceTypes = {
         light: { type: "Smart light", name: "Hallway light", location: "Hallway", mark: "L" },
@@ -210,7 +257,7 @@ addDeviceForm.addEventListener("submit", (event) => {
         plug: { type: "Smart plug", name: "Living room plug", location: "Living room", mark: "P" },
     };
     const selectedType = deviceTypes[newDeviceType.value];
-    const matchingDevices = devices.filter((device) => device.type === selectedType.type).length;
+    const matchingDevices = devices.filter((device) => device.device_type === selectedType.type).length;
 
     devices.push({
         id: nextDeviceId++,
@@ -221,6 +268,33 @@ addDeviceForm.addEventListener("submit", (event) => {
     saveStoredValue(storageKeys.devices, devices);
     renderDevices();
 });
+//     if (!selectedType) return;
 
-renderDevices();
+//     try {
+//         const response = await fetch("/api/devices", {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json"
+//             },
+//             body: JSON.stringify({
+//                 ...selectedType,
+//                 isOn: false
+//             })
+//         });
+
+//         if (!response.ok) {
+//             throw new Error("Failed to add device");
+//         }
+
+//         await loadDevices();
+
+//     } catch (error) {
+//         alert(error.message);
+//     }
+// });
+
+loadDevices().catch(error=>{
+    console.error(error);
+    alert("Could not load devices from the server.");
+});
 renderEnergyHistory();

@@ -22,25 +22,34 @@ form.addEventListener("submit", async (event) => {
 		});
 		// await authenticate(email, password);
 
+		const data = await response.json();
+
+		console.log("Response data:", data);
+
 		
 
-		console.log(response.status);
-		console.log(response.ok);
-		console.log(response.url);
-		console.log(response.redirected);
 
-
-
-		if (!response.ok) {
+		if (!data.ok) {
 			loginError.textContent = "Invalid email or password. Please try again.";
 			submitButton.disabled = false;
 			submitButton.textContent = "Log in";
 			throw new Error("Invalid credentials");
 		}
 		else{
+			switch (data.role) {
+				case "ADMIN":
+					window.location.href = "/html/dashboard.html";
+					break;
+				case "FAMILY":
+					window.location.href = "/html/family-dashboard.html";
+					break;
 
-			submitButton.disabled = true;
-			window.location.href="/html/family-dashboard.html";
+				case "HOMEOWNER":
+					window.location.href = "/html/homeowner-dashboard.html";
+					break;
+				default:
+					loginError.textContent = "Unexpected user role.";
+			}
 		}
 		
 
