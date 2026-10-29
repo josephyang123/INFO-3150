@@ -9,63 +9,80 @@ form.addEventListener("submit", async (event) => {
 	submitButton.textContent = "Signing in...";
 
 	const email = document.getElementById("email").value.trim();
-	const password = document.getElementById("password").value.trim();
+	const password = document.getElementById("password").value;
 
-	// try {
-		// TODO: Connect to the agreed login endpoint and route using its authenticated role.
-		const response = await fetch("/api/login", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ email, password }),
+	
+	try{
+
+		const csrfResponse = await fetch("/api/csrf", {
+			credentials:"same-origin",
+			cache:"no-store",
 		});
-		// await authenticate(email, password);
 
-		const data = await response.json();
+		if (!csrfResponse.ok) {
+            throw new Error("Could not prepare login. Please try again.");
+        }
 
-		console.log("Response data:", data);
+        const csrf = await csrfResponse.json();
 
+
+		const response = await fetch("/api/login", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                [csrf.headerName]: csrf.token,
+            },
+            body: new URLSearchParams({ email, password }),
+        });
+
+        if (response.status === 401) {
+            throw new Error("Invalid email or password.");
+        }
+
+        if (response.status === 403) {
+            throw new Error("Login security check failed. Please try again.");
+        }
+
+        if (!response.ok) {
+            throw new Error("Login failed. Please try again.");
+        }
+		
+		const userResponse = await fetch("/api/me", {
+            credentials: "same-origin",
+            cache: "no-store",
+        });
+
+        if (!userResponse.ok) {
+            throw new Error("Could not confirm your login. Please try again.");
+        }
+
+        const user = await userResponse.json();
+
+        const dashboards = {
+            ADMIN: "/html/dashboard.html",
+            FAMILY: "/html/family-dashboard.html",
+            HOMEOWNER: "/html/homeowner-dashboard.html",
+        };
+
+        const destination = dashboards[user.role];
+
+        if (!destination) {
+            throw new Error("Your account has an unexpected role.");
+        }
+
+        window.location.href = destination;
+
+	}catch (error) {
+		loginError.textContent = error.message;
+	}finally {
+		submitButton.disabled = false;
+		submitButton.textContent = "Sign In";
+	}
+		
 		
 
 
-		if (!data.ok) {
-			loginError.textContent = "Invalid email or password. Please try again.";
-			submitButton.disabled = false;
-			submitButton.textContent = "Log in";
-			throw new Error("Invalid credentials");
-		}
-		else{
-			switch (data.role) {
-				case "ADMIN":
-					window.location.href = "/html/dashboard.html";
-					break;
-				case "FAMILY":
-					window.location.href = "/html/family-dashboard.html";
-					break;
-
-				case "HOMEOWNER":
-					window.location.href = "/html/homeowner-dashboard.html";
-					break;
-				default:
-					loginError.textContent = "Unexpected user role.";
-			}
-		}
-		
-
-			// Redirect based on the user's role
-	// } catch (error) {
-	// 	loginError.textContent = error.message;
-	// 	console.log(error);
-	// } finally {
-	// 	submitButton.disabled = false;
-	// 	submitButton.textContent = "Log in";
-	// }
 });
 
-// async function authenticate(email, password) {
-// 	// TODO: Implement the agreed request, session handling, and role-to-dashboard mapping.
-// 	void email;
-// 	void password;
-// 	throw new Error("Login is not connected yet.");
-// }
+
