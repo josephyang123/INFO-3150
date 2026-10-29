@@ -52,7 +52,7 @@ form.addEventListener("submit", async (event) => {
     });
  
     if (response.ok) {
-        // alert("Registration successful! Redirecting to login page...");
+            // alert("Registration successful! Redirecting to login page...");
         document.getElementById("registerError").textContent = "Registration successful! Redirecting to login page...";
         window.location.href = "/html/login.html";
     } else {
