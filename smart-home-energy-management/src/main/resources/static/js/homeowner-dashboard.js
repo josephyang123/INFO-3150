@@ -49,6 +49,19 @@ async function loadDevices(){
     renderDevices();
 }
 
+async function loadDeviceTypes() {
+    const response = await fetch("/api/device-types");
+    if (!response.ok) {
+        throw new Error(`Could not load device types (${response.status}).`);
+    }
+
+    const types = await response.json();
+    newDeviceType.replaceChildren(
+        ...types.map(({ value, label }) => new Option(label, value))
+    );
+}
+
+
 const permissionDefaults = {
     familyAccount: "alex.morgan",
     canViewDevices: true,
@@ -135,7 +148,7 @@ function createDeviceRow(device) {
 
     const description = document.createElement("div");
     const name = document.createElement("h3");
-    name.textContent = device.device_name;
+    name.textContent = device.device_name.charAt(0).toUpperCase() + device.device_name.slice(1);
     const detail = document.createElement("p");
     detail.textContent = `${device.device_type} · ${device.manufacturer}`;
     description.append(name, detail);
@@ -148,6 +161,7 @@ function createDeviceRow(device) {
     state.className = "device-state";
     state.textContent = device.powered_state ? "On" : "Off";
 
+
     const toggle = document.createElement("button");
     toggle.className = "device-toggle";
     toggle.type = "button";
@@ -158,32 +172,36 @@ function createDeviceRow(device) {
     thumb.className = "toggle-thumb";
     thumb.setAttribute("aria-hidden", "true");
     toggle.append(thumb);
+
     toggle.addEventListener("click", async () => {
-        device.powered_state = !device.powered_state;
-        saveStoredValue(storageKeys.devices, devices);
-        renderDevices();
+        const poweredState = !device.powered_state;
+        toggle.disabled = true;
+
+        try {
+            const response = await fetchWithCsrf(`/api/devices/${device.device_id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ powered_state: poweredState }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Could not update device (${response.status}).`);
+            }
+
+            device.powered_state = poweredState;
+            state.textContent = poweredState ? "On" : "Off";
+            toggle.setAttribute("aria-checked", String(poweredState));
+            toggle.setAttribute(
+                "aria-label",
+                `Turn ${device.device_name} ${poweredState ? "off" : "on"}`
+            );
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            toggle.disabled = false;
+        }
     });
-    //     try {
-    //         const response = await fetch(`/api/devices/${device.device_id}`, {
-    //             method: "PATCH",
-    //             headers: {
-    //                 "Content-Type": "application/json"
-    //             },
-    //             body: JSON.stringify({
-    //                 isOn: !device.powered_state
-    //             })
-    //         });
 
-    //         if (!response.ok) {
-    //             throw new Error("Failed to update device");
-    //         }
-
-    //         await loadDevices();
-
-    //     } catch (error) {
-    //         alert(error.message);
-    //     }
-    // });
 
     const remove = document.createElement("button");
     remove.className = "remove-device";
@@ -191,25 +209,26 @@ function createDeviceRow(device) {
     remove.textContent = "Remove";
     remove.setAttribute("aria-label", `Remove ${device.device_name}`);
     remove.addEventListener("click", async () => {
-        devices = devices.filter((item) => item.device_id !== device.device_id);
-        saveStoredValue(storageKeys.devices, devices);
-        renderDevices();
+        remove.disabled = true;
+
+         try {
+            const response = await fetchWithCsrf(`/api/devices/${device.device_id}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error(`Could not remove device (${response.status}).`);
+            }
+
+            devices = devices.filter((item) => item.device_id !== device.device_id);
+            renderDevices();
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            remove.disabled = false;
+        }
     });
-    //     try {
-    //         const response = await fetch(`/api/devices/${device.device_id}`, {
-    //             method: "DELETE"
-    //         });
-
-    //         if (!response.ok) {
-    //             throw new Error("Failed to remove device");
-    //         }
-
-    //         await loadDevices();
-
-    //     } catch (error) {
-    //         alert(error.message);
-    //     }
-    // });
+       
 
     controls.append(state, toggle, remove);
     row.append(identity, controls);
@@ -251,50 +270,43 @@ permissionsForm.addEventListener("submit", (event) => {
 
 addDeviceForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const deviceTypes = {
-        light: { type: "Smart light", name: "Hallway light", location: "Hallway", mark: "L" },
-        thermostat: { type: "Smart thermostat", name: "Hallway thermostat", location: "Hallway", mark: "T" },
-        plug: { type: "Smart plug", name: "Living room plug", location: "Living room", mark: "P" },
-    };
-    const selectedType = deviceTypes[newDeviceType.value];
-    const matchingDevices = devices.filter((device) => device.device_type === selectedType.type).length;
 
-    devices.push({
-        id: nextDeviceId++,
-        ...selectedType,
-        name: matchingDevices ? `${selectedType.name} ${matchingDevices + 1}` : selectedType.name,
-        isOn: false,
+    const fields = new FormData(addDeviceForm);
+    const submitButton = event.submitter;
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+        const response = await fetchWithCsrf("/api/devices", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                device_name: fields.get("device_name").trim(),
+                device_type: fields.get("device_type"),
+                manufacturer: fields.get("manufacturer").trim(),
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Could not add device (${response.status}).`);
+        }
+
+        addDeviceForm.reset();
+    } catch (error) {
+        alert(error.message);
+        return;
+    } finally {
+        if (submitButton) submitButton.disabled = false;
+    }
+
+    loadDevices().catch(() => {
+        alert("Device added, but the list could not refresh. Reload the page.");
     });
-    saveStoredValue(storageKeys.devices, devices);
-    renderDevices();
 });
-//     if (!selectedType) return;
-
-//     try {
-//         const response = await fetch("/api/devices", {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/json"
-//             },
-//             body: JSON.stringify({
-//                 ...selectedType,
-//                 isOn: false
-//             })
-//         });
-
-//         if (!response.ok) {
-//             throw new Error("Failed to add device");
-//         }
-
-//         await loadDevices();
-
-//     } catch (error) {
-//         alert(error.message);
-//     }
-// });
 
 loadDevices().catch(error=>{
     console.error(error);
     alert("Could not load devices from the server.");
 });
+loadDeviceTypes().catch(error => alert(error.message));
+
 renderEnergyHistory();

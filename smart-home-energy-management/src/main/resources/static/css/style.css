@@ -136,6 +136,23 @@ h1 {
 	margin: auto;
 	padding-block: 56px 72px;
 }
+.add-device-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+}
+
+.add-device-controls input,
+.add-device-controls select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.add-device-controls button {
+    justify-self: start;
+    margin-top: 4px;
+}
 
 .back-link {
 	color: var(--color-muted);

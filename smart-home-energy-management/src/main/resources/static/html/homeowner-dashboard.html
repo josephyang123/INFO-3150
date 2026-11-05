@@ -75,11 +75,24 @@
                     <label for="newDeviceType">Add a device</label>
                     <p class="control-description">Choose a device type to add to your home.</p>
                     <div class="add-device-controls">
-                        <select id="newDeviceType" name="deviceType">
-                            <option value="light">Smart light</option>
-                            <option value="thermostat">Smart thermostat</option>
-                            <option value="plug">Smart plug</option>
+                        <select id="newDeviceType" name="device_type" required>
+                            <option value=""></option>
                         </select>
+                        
+                    </div>
+                    <div>
+
+                        <label for="newDeviceName">Device name</label>
+                        <input id="newDeviceName" name="device_name" type="text" required>
+                    </div>
+                    <div>
+
+                        <label for="newManufacturer">Manufacturer</label>
+                        <input id="newManufacturer" name="manufacturer" type="text" required>
+                    </div>
+
+                    <div>
+
                         <button class="action action-primary" type="submit">Add device</button>
                     </div>
                 </form>

@@ -28,6 +28,8 @@ public class Device {
     private String manufacturer;
     @Column (name = "powered_state", nullable = false)
     private boolean powered_state;
+    @Column (name = "date_added", nullable = false, insertable = false, updatable = false)
+    private String date_added;
     
     public int getDevice_id() {
         return device_id;
@@ -35,6 +37,13 @@ public class Device {
     public void setDevice_id(int device_id) {
         this.device_id = device_id;
     }
+    public int getHouse_id() {
+        return house_id;
+    }
+    public void setHouse_id(int house_id) {
+        this.house_id = house_id;
+    }
+
     public String getDevice_name() {
         return device_name;
     }
@@ -52,6 +61,31 @@ public class Device {
     }
     public void setManufacturer(String manufacturer) {
         this.manufacturer = manufacturer;
+    }
+
+    public boolean getPowered_state() {
+        return powered_state;
+    }
+
+    public void setPowered_state(boolean powered_state) {
+        this.powered_state = powered_state;
+    }
+
+    public String getDate_added() {
+        return date_added;
+    }
+
+
+    public Device() {
+        // Default constructor for JPA
+    }
+    public Device(int house_id, String device_name, String device_type, String manufacturer, boolean powered_state) {
+        this.house_id = house_id;
+        this.device_name = device_name;
+        this.device_type = device_type;
+        this.manufacturer = manufacturer;
+        this.powered_state = powered_state;
+        
     }
 
     

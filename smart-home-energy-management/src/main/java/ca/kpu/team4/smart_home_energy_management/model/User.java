@@ -29,6 +29,10 @@ public class User {
         return account_role;
     }
 
+    public int getUser_id() {
+        return id;
+    }
+
     public void setAccount_role(String account_role) {
         this.account_role = account_role;
     }

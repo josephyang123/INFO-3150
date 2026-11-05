@@ -33,7 +33,7 @@ CREATE TABLE smart_devices (
     device_name VARCHAR(254) NOT NULL,
     device_type ENUM('THERMOSTAT', 'SPEAKER', 'DOORBELL', 'LOCK', 'FRIDGE', 'OVEN', 'LIGHT', 'TV', 'KEYCHAIN', 'OTHER')  NOT NULL,
     manufacturer VARCHAR(254),
-    powered_state BOOLEAN,
+    powered_state BOOLEAN default 0,
     date_added DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (device_id),
@@ -55,10 +55,10 @@ CREATE TABLE family_members (
 );
 
 INSERT INTO user_accounts(user_name, email, password, account_role) VALUES
-    ('John Smith', 'admin@account.com', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'admin'), -- password
-    ('Poe Tater', 'po.tat0@mail.com', '923b7bfd85482d2d56a3d385903cb0bd2fef0a6f77011b43627bf2bcdb5ad91e', 'homeowner'), -- potatopotato
-    ('Tom A. Toe', 'tomato@mail.com', 'fb0c841846766b1550380971f2d2d48015c16d8e20b3f405672990c3a3d8a112', 'homeowner'), -- tomatotomato
-    ('Ms. Fortune', 'luckiestever@luck.com', 'bfbb82ac7ece5654f7494ff3e3aeed1f610698487391c8fc342ff8e81e2330c3', 'family'); -- solucky
+    ('John Smith', 'admin@account.com', '$2a$10$Ux49yZF3rkocU8cuLDa.leauyYxE1u.G4f1a5QAy22HUJqPy./d8W', 'admin'), -- password
+    ('Poe Tater', 'po.tat0@mail.com', '$2a$10$Ux49yZF3rkocU8cuLDa.leauyYxE1u.G4f1a5QAy22HUJqPy./d8W', 'homeowner'), -- potatopotato
+    ('Tom A. Toe', 'tomato@mail.com', '$2a$10$Ux49yZF3rkocU8cuLDa.leauyYxE1u.G4f1a5QAy22HUJqPy./d8W', 'homeowner'), -- tomatotomato
+    ('Ms. Fortune', 'luckiestever@luck.com', '$2a$10$Ux49yZF3rkocU8cuLDa.leauyYxE1u.G4f1a5QAy22HUJqPy./d8W', 'family'); -- solucky
 
 INSERT INTO houses(user_id, house_name) VALUES
 	(2, 'The FarmHouse'),
@@ -69,7 +69,8 @@ INSERT INTO smart_devices(house_id, device_name, device_type, manufacturer, powe
     (2, 'Living Room TV', 'tv', 'Samsung', 0),
     (1, 'new keys', 'keychain', 'Smart Keychain Co', 1);
 
-INSERT INTO family_members(house_id, user_id, can_view_device, can_edit_device, can_view_stats) VALUE (1, 4, 1, 1, 0);
+INSERT INTO family_members(house_id, user_id, can_view_device, can_edit_device, can_view_stats) VALUES 
+(1, 5, 1, 1, 0);
 
 /*
 SELECT * FROM user_accounts;
