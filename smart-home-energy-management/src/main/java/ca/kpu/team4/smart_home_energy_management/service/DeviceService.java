@@ -89,5 +89,12 @@ public class DeviceService {
                 false));
     }
 
+    @Transactional
+    public void updatePowerStateForFamily(int deviceId, String email, boolean poweredState) {
+        Device device = deviceRepository.findControllableFamilyDevice(deviceId, email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Device unavailable"));
+        device.setPowered_state(poweredState);
+    }
 
 }

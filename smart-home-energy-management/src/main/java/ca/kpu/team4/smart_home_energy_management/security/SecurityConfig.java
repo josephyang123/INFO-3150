@@ -50,11 +50,16 @@ public class SecurityConfig {
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/csrf").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
-
+                    .requestMatchers(HttpMethod.GET, "/api/family-members").hasRole("HOMEOWNER")
+                    .requestMatchers(HttpMethod.PUT, "/api/family-members/*/permissions").hasRole("HOMEOWNER")
+                    
+                    
                     .requestMatchers("/html/dashboard.html").hasRole("ADMIN")
                     .requestMatchers("/html/family-dashboard.html").hasRole("FAMILY")
                     .requestMatchers("/html/homeowner-dashboard.html").hasRole("HOMEOWNER")
-
+                    .requestMatchers("/api/family/**").hasRole("FAMILY")
+                    .requestMatchers("/api/devices", "/api/devices/**").hasRole("HOMEOWNER")
+                    
                     .anyRequest().authenticated()
                 )
 

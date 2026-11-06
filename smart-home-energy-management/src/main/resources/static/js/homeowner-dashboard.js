@@ -1,40 +1,27 @@
-// TODO (Backend): replace this single shared preview permission object with username-keyed records; persist changes and enforce access server-side.
-const storageKeys = {
-    devices: "smartHomeDemoDevices",
-    permissions: "smartHomeDemoPermissions",
-};
 
-const starterDevices = [
-    {
-        id: 1,
-        name: "Living room light",
-        type: "Smart light",
-        location: "Living room",
-        mark: "L",
-        isOn: true,
-    },
-];
-
-function readStoredValue(key, fallback) {
-    try {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : fallback;
-    } catch {
-        return fallback;
-    }
-}
-
-function saveStoredValue(key, value) {
-    try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-    } catch {
-        return false;
-    }
-}
 
 let devices = [];
+let familyMembers = [];
 
+//Call backend API to get family members
+async function loadFamilyMembers() {
+    const response = await fetch("/api/family-members");
+
+    if(!response.ok){
+        throw new Error(`Failed to load family members(${response.status})`);
+    }
+
+    familyMembers = await response.json();
+    familyAccount.replaceChildren(
+        ...familyMembers.map(({ value, label }) => new Option(label, value))
+    );
+
+
+    showSelectedPermissions();
+   
+}
+
+//Call backend API to get devices and populate the device list. for showing existing devices
 async function loadDevices(){
     const response = await fetch("/api/devices");
 
@@ -45,10 +32,11 @@ async function loadDevices(){
     devices = await response.json();
 
 
-    console.log("Devices:", devices);
+    //console.log("Devices:", devices);
     renderDevices();
 }
 
+//Call backend API to get device types and populate the dropdown. for adding new devices
 async function loadDeviceTypes() {
     const response = await fetch("/api/device-types");
     if (!response.ok) {
@@ -62,30 +50,6 @@ async function loadDeviceTypes() {
 }
 
 
-const permissionDefaults = {
-    familyAccount: "alex.morgan",
-    canViewDevices: true,
-    canControlDevices: true,
-    canViewEnergy: true,
-};
-const familyAccountNames = {
-    "alex.morgan": "Alex Morgan",
-    "sam.lee": "Sam Lee",
-};
-const legacyAccountNames = {
-    "alex.morgan@example.com": "alex.morgan",
-    "sam.lee@example.com": "sam.lee",
-    "family.member@example.com": "alex.morgan",
-};
-const storedPermissions = readStoredValue(storageKeys.permissions, permissionDefaults);
-let familyPermissions = {
-    ...permissionDefaults,
-    ...(storedPermissions && typeof storedPermissions === "object" ? storedPermissions : {}),
-};
-if (legacyAccountNames[familyPermissions.familyAccount]) {
-    familyPermissions.familyAccount = legacyAccountNames[familyPermissions.familyAccount];
-}
-
 const deviceList = document.getElementById("deviceList");
 const deviceCount = document.getElementById("deviceCount");
 const deviceEmpty = document.getElementById("deviceEmpty");
@@ -98,6 +62,7 @@ const familyCanControl = document.getElementById("familyCanControl");
 const familyCanViewEnergy = document.getElementById("familyCanViewEnergy");
 const permissionStatus = document.getElementById("permissionStatus");
 
+//Render energy history chart
 function renderEnergyHistory() {
     const now = new Date();
     const today = document.getElementById("energyDate");
@@ -134,6 +99,7 @@ function renderEnergyHistory() {
 
 let nextDeviceId = devices.reduce((nextId, device) => Math.max(nextId, device.device_id + 1), 1);
 
+//Create device cards
 function createDeviceRow(device) {
     const row = document.createElement("article");
     row.className = "device-row";
@@ -235,39 +201,77 @@ function createDeviceRow(device) {
     return row;
 }
 
+//Render device cards
 function renderDevices() {
 	deviceCount.textContent = `${devices.length} ${devices.length === 1 ? "device" : "devices"}`;
     deviceEmpty.hidden = devices.length > 0;
     deviceList.replaceChildren(...devices.map(createDeviceRow));
 }
 
-familyAccount.value = familyPermissions.familyAccount || permissionDefaults.familyAccount;
-familyCanView.checked = Boolean(familyPermissions.canViewDevices);
-familyCanControl.checked = Boolean(familyPermissions.canControlDevices);
-familyCanViewEnergy.checked = Boolean(familyPermissions.canViewEnergy);
-familyCanControl.disabled = !familyCanView.checked;
+function showSelectedPermissions() {
+    const member = familyMembers.find(
+        member => String(member.value) === familyAccount.value
+    );
 
-familyCanView.addEventListener("change", () => {
-    if (!familyCanView.checked) {
-        familyCanControl.checked = false;
-    }
-    familyCanControl.disabled = !familyCanView.checked;
-});
+    familyCanView.checked = member?.canViewDevices ?? false;
+    familyCanControl.checked = member?.canControlDevices ?? false;
+    familyCanViewEnergy.checked = member?.canViewEnergy ?? false;
+}
 
-permissionsForm.addEventListener("submit", (event) => {
+familyAccount.addEventListener("change", showSelectedPermissions);
+
+
+
+permissionsForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    familyPermissions = {
-        familyAccount: familyAccount.value,
+
+    const member = familyMembers.find(
+        member => String(member.value) === familyAccount.value
+    );
+    if (!member) return;
+
+    const permissions = {
         canViewDevices: familyCanView.checked,
-        canControlDevices: familyCanView.checked && familyCanControl.checked,
+        canControlDevices: familyCanControl.checked,
         canViewEnergy: familyCanViewEnergy.checked,
     };
-    const saved = saveStoredValue(storageKeys.permissions, familyPermissions);
-    permissionStatus.textContent = saved
-        ? `Permissions saved for ${familyAccountNames[familyAccount.value] || familyAccount.value}.`
-        : "Could not save these preview settings in this browser.";
+
+    if (permissions.canControlDevices && !permissions.canViewDevices) {
+        permissionStatus.textContent = "Enable View devices to allow Control devices.";
+        return;
+    }
+
+    const saveButton = permissionsForm.querySelector('button[type="submit"]');
+    const controls = [
+        saveButton, familyAccount, familyCanView, familyCanControl, familyCanViewEnergy,
+    ];
+    controls.forEach(control => { control.disabled = true; });
+    permissionStatus.textContent = "Saving…";
+
+    try {
+        const response = await fetchWithCsrf(
+            `/api/family-members/${member.value}/permissions`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(permissions),
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Could not save permissions (${response.status}).`);
+        }
+
+        Object.assign(member, permissions);
+        permissionStatus.textContent = `Permissions saved for ${member.label}.`;
+    } catch (error) {
+        permissionStatus.textContent = error.message;
+    } finally {
+        controls.forEach(control => { control.disabled = false; });
+    }
 });
 
+
+//the button to add a new device 
 addDeviceForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -308,5 +312,10 @@ loadDevices().catch(error=>{
     alert("Could not load devices from the server.");
 });
 loadDeviceTypes().catch(error => alert(error.message));
+
+loadFamilyMembers().catch(error => {
+    console.error(error);
+    permissionStatus.textContent = error.message;
+});
 
 renderEnergyHistory();

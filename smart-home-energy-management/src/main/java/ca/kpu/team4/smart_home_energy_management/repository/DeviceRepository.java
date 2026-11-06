@@ -24,5 +24,29 @@ public interface DeviceRepository
         FROM houses
         WHERE user_id = :userId
         """, nativeQuery = true)
-        List<Integer> findOwnedHouseIds(@Param("userId") int userId);
+    List<Integer> findOwnedHouseIds(@Param("userId") int userId);
+
+    @Query(value = """
+        SELECT d.*
+        FROM smart_devices d
+        JOIN family_members fm ON fm.house_id = d.house_id
+        JOIN user_accounts u ON u.user_id = fm.user_id
+        WHERE u.email = :email AND fm.can_view_device = 1
+        ORDER BY d.device_id
+        """, nativeQuery = true)
+    List<Device> findVisibleFamilyDevices(@Param("email") String email);
+
+    @Query(value = """
+        SELECT d.*
+        FROM smart_devices d
+        JOIN family_members fm ON fm.house_id = d.house_id
+        JOIN user_accounts u ON u.user_id = fm.user_id
+        WHERE d.device_id = :deviceId
+        AND u.email = :email
+        AND fm.can_view_device = 1
+        AND fm.can_edit_device = 1
+        FOR UPDATE
+        """, nativeQuery = true)
+    Optional<Device> findControllableFamilyDevice(
+            @Param("deviceId") int deviceId, @Param("email") String email);
 }

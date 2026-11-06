@@ -31,9 +31,11 @@
             <p class="eyebrow">FAMILY ACCOUNT</p>
             <h2 id="family-account-title">Family member</h2>
             <p id="familyAccountDisplay"></p>
+            <label for="familyHouse">House</label>
+            <select id="familyHouse"></select>
         </section>
 
-        <section class="energy-overview dashboard-card" id="energySummary" aria-labelledby="energy-title">
+        <section class="energy-overview dashboard-card" id="energySummary" aria-labelledby="energy-title" hidden>
             <div class="energy-reading-group">
                 <p class="eyebrow" id="energy-title">ENERGY TODAY</p>
                 <div class="energy-reading-detail">
@@ -69,7 +71,7 @@
             </figure>
         </section>
 
-        <section class="device-section dashboard-section dashboard-card" id="deviceSection" aria-labelledby="devices-title">
+        <section class="device-section dashboard-section dashboard-card" id="deviceSection" aria-labelledby="devices-title" hidden>
             <div class="section-heading">
                 <h2 id="devices-title">Your devices</h2>
                 <span class="section-count" id="deviceCount">1 device</span>

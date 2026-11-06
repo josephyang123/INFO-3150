@@ -53,36 +53,52 @@ public class DeviceController {
             deviceService.updatePowerState(deviceId, request.powered_state());
         }
         
-        @DeleteMapping("/api/devices/{deviceId}")
-        @ResponseStatus(HttpStatus.NO_CONTENT)
-        public void deleteDevice(@PathVariable("deviceId") int deviceId) {
-            deviceService.deleteDevice(deviceId);
-        }
+    @DeleteMapping("/api/devices/{deviceId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteDevice(@PathVariable("deviceId") int deviceId) {
+        deviceService.deleteDevice(deviceId);
+    }
         
         
-        public record DeviceTypeOption(String value, String label) {}
-        @GetMapping("/api/device-types")
-        public List<DeviceTypeOption> getDeviceTypes() {
-            return Arrays.stream(DeviceType.values())
-            .map(type -> new DeviceTypeOption(type.name(), type.getLabel()))
-            .toList();
-        }   
+    public record DeviceTypeOption(String value, String label) {}
+    @GetMapping("/api/device-types")
+    public List<DeviceTypeOption> getDeviceTypes() {
+        return Arrays.stream(DeviceType.values())
+        .map(type -> new DeviceTypeOption(type.name(), type.getLabel()))
+        .toList();
+    }   
 
-        public record CreateDeviceRequest(
-            String device_name,
-            DeviceType device_type,
-            String manufacturer
-        ){}
-        @PostMapping("/api/devices")
-        @ResponseStatus(HttpStatus.CREATED)
-        public void createDevice(@RequestBody CreateDeviceRequest request,
-                                Authentication authentication) {
-            deviceService.createDevice(
-                    authentication.getName(),
-                    request.device_name(),
-                    request.device_type(),
-                    request.manufacturer());
-}
+    public record CreateDeviceRequest(
+        String device_name,
+        DeviceType device_type,
+        String manufacturer
+    ){}
+
+    @PostMapping("/api/devices")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createDevice(@RequestBody CreateDeviceRequest request,
+                            Authentication authentication) {
+        deviceService.createDevice(
+                authentication.getName(),
+                request.device_name(),
+                request.device_type(),
+                request.manufacturer());
+    }
+
+    @PatchMapping("/api/family/devices/{deviceId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateFamilyDevicePower(
+            @PathVariable("deviceId") int deviceId,
+            @RequestBody PowerStateRequest request,
+            Authentication authentication) {
+        if (request.powered_state() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "powered_state is required");
+        }
+
+        deviceService.updatePowerStateForFamily(
+                deviceId, authentication.getName(), request.powered_state());
+    }
 
         
         

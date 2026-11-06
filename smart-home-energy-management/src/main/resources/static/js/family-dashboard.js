@@ -1,59 +1,8 @@
-// TODO (Backend): resolve the family account from the session; load that account's permissions and return only authorized devices/energy data.
-const storageKeys = {
-    devices: "smartHomeDemoDevices",
-    permissions: "smartHomeDemoPermissions",
-};
+let houses = [];
+let devices = [];
+let permissions = {};
 
-const starterDevices = [
-    {
-        id: 1,
-        name: "Living room light",
-        type: "Smart light",
-        location: "Living room",
-        mark: "L",
-        isOn: true,
-    },
-];
-
-function readStoredValue(key, fallback) {
-    try {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : fallback;
-    } catch {
-        return fallback;
-    }
-}
-
-function saveDevices() {
-    try {
-        localStorage.setItem(storageKeys.devices, JSON.stringify(devices));
-    } catch {
-        return;
-    }
-}
-
-const devices = readStoredValue(storageKeys.devices, starterDevices);
-const permissionDefaults = {
-    familyAccount: "alex.morgan",
-    canViewDevices: true,
-    canControlDevices: true,
-    canViewEnergy: true,
-};
-const familyAccountNames = {
-    "alex.morgan": "Alex Morgan",
-    "sam.lee": "Sam Lee",
-};
-const legacyAccountNames = {
-    "alex.morgan@example.com": "alex.morgan",
-    "sam.lee@example.com": "sam.lee",
-    "family.member@example.com": "alex.morgan",
-};
-const storedPermissions = readStoredValue(storageKeys.permissions, permissionDefaults);
-const permissions = {
-    ...permissionDefaults,
-    ...(storedPermissions && typeof storedPermissions === "object" ? storedPermissions : {}),
-};
-permissions.familyAccount = legacyAccountNames[permissions.familyAccount] || permissions.familyAccount;
+const familyHouse = document.getElementById("familyHouse");
 const familyAccountDisplay = document.getElementById("familyAccountDisplay");
 const energySummary = document.getElementById("energySummary");
 const deviceSection = document.getElementById("deviceSection");
@@ -96,12 +45,53 @@ function renderEnergyHistory() {
     );
 }
 
-familyAccountDisplay.textContent = familyAccountNames[permissions.familyAccount]
-    || permissions.familyAccount
-    || "Family account";
-energySummary.hidden = !permissions.canViewEnergy;
-deviceSection.hidden = !permissions.canViewDevices;
-noDeviceAccess.hidden = Boolean(permissions.canViewDevices);
+function showSelectedHouse() {
+    const house = houses.find(house => String(house.houseId) === familyHouse.value);
+
+    permissions = house ?? {};
+    devices = house?.devices ?? [];
+
+    energySummary.hidden = !permissions.canViewEnergy;
+    deviceSection.hidden = !permissions.canViewDevices;
+    noDeviceAccess.hidden = Boolean(permissions.canViewDevices);
+
+    renderDevices();
+    if (permissions.canViewEnergy) renderEnergyHistory();
+}
+
+async function loadFamilyDashboard() {
+    const response = await fetch("/api/family/dashboard");
+    if (!response.ok) {
+        throw new Error(`Could not load family dashboard (${response.status}).`);
+    }
+
+    const dashboard = await response.json();
+    houses = dashboard.map(house => ({
+        ...house,
+        devices: house.devices.map(device => ({
+            id: device.device_id,
+            name: device.device_name,
+            type: device.device_type,
+            location: house.houseName,
+            mark: device.device_name.charAt(0).toUpperCase(),
+            isOn: device.powered_state,
+        })),
+    }));
+
+    familyAccountDisplay.textContent =
+        houses[0]?.memberName ?? "No house assigned to this account.";
+
+    familyHouse.replaceChildren(
+        ...houses.map(house => new Option(house.houseName, house.houseId))
+    );
+    familyHouse.disabled = houses.length === 0;
+    showSelectedHouse();
+}
+
+familyHouse.addEventListener("change", showSelectedHouse);
+loadFamilyDashboard().catch(error => {
+    familyAccountDisplay.textContent = error.message;
+});
 
 function createDeviceRow(device) {
     const row = document.createElement("article");
@@ -140,10 +130,31 @@ function createDeviceRow(device) {
         thumb.className = "toggle-thumb";
         thumb.setAttribute("aria-hidden", "true");
         toggle.append(thumb);
-        toggle.addEventListener("click", () => {
-            device.isOn = !device.isOn;
-            saveDevices();
-            renderDevices();
+        toggle.disabled = Boolean(device.saving);
+
+        toggle.addEventListener("click", async () => {
+            const nextState = !device.isOn;
+            device.saving = true;
+            toggle.disabled = true;
+
+            try {
+                const response = await fetchWithCsrf(`/api/family/devices/${device.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ powered_state: nextState }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Could not control this device (${response.status}).`);
+                }
+
+                device.isOn = nextState;
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                device.saving = false;
+                renderDevices();
+            }
         });
         controls.append(toggle);
     }

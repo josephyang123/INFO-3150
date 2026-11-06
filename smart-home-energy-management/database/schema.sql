@@ -50,6 +50,7 @@ CREATE TABLE family_members (
     can_view_stats BOOLEAN DEFAULT 0,
     
     PRIMARY KEY (fm_id),
+    CONSTRAINT uq_family_members_house_user UNIQUE (house_id, user_id),
     CONSTRAINT fk_userid_fm FOREIGN KEY (user_id) REFERENCES user_accounts(user_id),
     CONSTRAINT fk_houseid_fm FOREIGN KEY (house_id) REFERENCES houses(house_id)
 );
@@ -70,7 +71,8 @@ INSERT INTO smart_devices(house_id, device_name, device_type, manufacturer, powe
     (1, 'new keys', 'keychain', 'Smart Keychain Co', 1);
 
 INSERT INTO family_members(house_id, user_id, can_view_device, can_edit_device, can_view_stats) VALUES 
-(1, 5, 1, 1, 0);
+(2, 5, 1, 1, 0),
+(2,6,0,0,0);
 
 /*
 SELECT * FROM user_accounts;
