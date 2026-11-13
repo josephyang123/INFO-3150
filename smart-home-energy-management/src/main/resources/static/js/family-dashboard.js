@@ -2,6 +2,8 @@ let houses = [];
 let devices = [];
 let permissions = {};
 
+
+
 const familyHouse = document.getElementById("familyHouse");
 const familyAccountDisplay = document.getElementById("familyAccountDisplay");
 const energySummary = document.getElementById("energySummary");
@@ -11,53 +13,7 @@ const deviceCount = document.getElementById("deviceCount");
 const deviceEmpty = document.getElementById("deviceEmpty");
 const noDeviceAccess = document.getElementById("noDeviceAccess");
 
-function renderEnergyHistory() {
-    const now = new Date();
-    const today = document.getElementById("energyDate");
-    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 10);
-    today.dateTime = localDate;
-    today.textContent = `Today · ${new Intl.DateTimeFormat(undefined, {
-        month: "short",
-        day: "numeric",
-    }).format(now)}`;
-
-    const chartBars = Array.from(document.querySelectorAll(".energy-chart-bar"));
-    const dayLabels = Array.from(document.querySelectorAll(".energy-chart-day"));
-    const maxUsage = Math.max(...chartBars.map((bar) => Number(bar.dataset.kwh)));
-    const readings = [];
-
-    chartBars.forEach((bar, index) => {
-        const usage = Number(bar.dataset.kwh);
-        const date = new Date(now);
-        date.setDate(now.getDate() - (chartBars.length - index - 1));
-        const day = new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date);
-
-        dayLabels[index].textContent = day;
-        bar.style.height = `${Math.max(8, usage / maxUsage * 100)}%`;
-        readings.push(`${day}: ${usage} kWh`);
-    });
-
-    document.querySelector(".energy-chart").setAttribute(
-        "aria-label",
-        `Sample daily energy use for the last seven days: ${readings.join(", ")}.`
-    );
-}
-
-function showSelectedHouse() {
-    const house = houses.find(house => String(house.houseId) === familyHouse.value);
-
-    permissions = house ?? {};
-    devices = house?.devices ?? [];
-
-    energySummary.hidden = !permissions.canViewEnergy;
-    deviceSection.hidden = !permissions.canViewDevices;
-    noDeviceAccess.hidden = Boolean(permissions.canViewDevices);
-
-    renderDevices();
-    if (permissions.canViewEnergy) renderEnergyHistory();
-}
+let energyRequest;
 
 async function loadFamilyDashboard() {
     const response = await fetch("/api/family/dashboard");
@@ -87,6 +43,92 @@ async function loadFamilyDashboard() {
     familyHouse.disabled = houses.length === 0;
     showSelectedHouse();
 }
+async function loadEnergyHistory(houseId) {
+    energyRequest?.abort();
+    const request = new AbortController();
+    energyRequest = request;
+
+    const chart = energySummary.querySelector(".energy-chart");
+    const reading = energySummary.querySelector(".energy-reading-detail");
+    const status = document.getElementById("energyError");
+
+    chart.hidden = true;
+    reading.hidden = true;
+    status.textContent = "Loading energy history…";
+
+    try {
+        const response = await fetch(`/api/family/houses/${houseId}/energy/daily`, {
+            signal: request.signal
+        });
+        if (!response.ok) throw new Error(`Energy request failed (${response.status})`);
+
+        const days = await response.json();
+        if (request.signal.aborted) return;
+
+        renderEnergyHistory(days);
+        chart.hidden = false;
+        reading.hidden = false;
+        status.textContent = "";
+    } catch (error) {
+        if (request.signal.aborted) return;
+
+        status.textContent = "Could not load energy history.";
+        console.error(error);
+    }
+}
+
+function renderEnergyHistory(days) {
+    const chart = energySummary.querySelector(".energy-chart");
+    const bars = chart.querySelectorAll("[data-energy-bar]");
+    const labels = chart.querySelectorAll("[data-energy-label]");
+    const values = chart.querySelectorAll("[data-energy-energy]");
+    const maxKwh = Math.max(0, ...days.map(day => day.kwh));
+    const readings = [];
+
+    days.forEach(({ date, kwh }, index) => {
+        const label = formatEnergyDate(date, { weekday: "short", day: "numeric" });
+        const value = `${kwh.toFixed(2)} kWh`;
+
+        bars[index].style.height = `${maxKwh > 0 ? (kwh / maxKwh) * 100 : 0}%`;
+        labels[index].textContent = label;
+        values[index].textContent = value;
+        readings.push(`${label}: ${value}`);
+    });
+
+    const today = days[days.length - 1];
+    document.getElementById("energyToday").textContent = today.kwh.toFixed(2);
+
+    const energyDate = document.getElementById("energyDate");
+    energyDate.dateTime = today.date;
+    energyDate.textContent = formatEnergyDate(today.date, { month: "short", day: "numeric" });
+    chart.setAttribute("aria-label", `Daily energy use: ${readings.join(", ")}.`);
+}
+
+function formatEnergyDate(date, options) {
+    return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-CA", {
+        ...options,
+        timeZone: "UTC"
+    });
+}
+
+function showSelectedHouse() {
+    const house = houses.find(house => String(house.houseId) === familyHouse.value);
+
+    permissions = house ?? {};
+    devices = house?.devices ?? [];
+
+    energySummary.hidden = !permissions.canViewEnergy;
+    deviceSection.hidden = !permissions.canViewDevices;
+    noDeviceAccess.hidden = Boolean(permissions.canViewDevices);
+
+    renderDevices();
+    if (house?.canViewEnergy) {
+        loadEnergyHistory(house.houseId);
+    } else {
+        energyRequest?.abort();
+    }
+}
+
 
 familyHouse.addEventListener("change", showSelectedHouse);
 loadFamilyDashboard().catch(error => {
@@ -171,4 +213,3 @@ function renderDevices() {
 }
 
 renderDevices();
-renderEnergyHistory();

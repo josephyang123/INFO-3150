@@ -31,35 +31,49 @@
             <div class="energy-reading-group">
                 <p class="eyebrow" id="energy-title">ENERGY TODAY</p>
                 <div class="energy-reading-detail">
-                    <p class="energy-reading"><span>2.4</span> <span class="energy-unit">kWh</span></p>
+                    <p class="energy-reading"><span id="energyToday"></span> <span class="energy-unit">kWh</span></p>
                     <time class="energy-date" id="energyDate"></time>
                 </div>
             </div>
             <figure class="energy-history">
                 <figcaption class="energy-history-heading">
-                    <p>Sample daily use · kWh</p>
+                    <p>Estimated daily use · kWh</p>
                 </figcaption>
                 <!-- TODO (backend/DB): replace fixed sample kWh values with readings from the agreed energy API and persisted data. -->
                 <div class="energy-chart" role="img" aria-label="Sample daily energy use for the last seven days">
                     <div class="energy-chart-plot" aria-hidden="true">
-                        <span class="energy-chart-bar" data-kwh="1.8"></span>
-                        <span class="energy-chart-bar" data-kwh="2.1"></span>
-                        <span class="energy-chart-bar" data-kwh="1.6"></span>
-                        <span class="energy-chart-bar" data-kwh="2.7"></span>
-                        <span class="energy-chart-bar" data-kwh="2.3"></span>
-                        <span class="energy-chart-bar" data-kwh="3.1"></span>
-                        <span class="energy-chart-bar" data-kwh="2.4"></span>
+                            <span class="energy-chart-bar" data-energy-bar ></span>
+                            <span class="energy-chart-bar" data-energy-bar ></span>
+                            <span class="energy-chart-bar" data-energy-bar ></span>
+                            <span class="energy-chart-bar" data-energy-bar ></span>
+                        
+                            <span class="energy-chart-bar" data-energy-bar ></span>
+                            <span class="energy-chart-bar" data-energy-bar ></span>
+                            <span class="energy-chart-bar" data-energy-bar ></span>
+                            
                     </div>
                     <div class="energy-chart-labels" aria-hidden="true">
-                        <span class="energy-chart-day"></span>
-                        <span class="energy-chart-day"></span>
-                        <span class="energy-chart-day"></span>
-                        <span class="energy-chart-day"></span>
-                        <span class="energy-chart-day"></span>
-                        <span class="energy-chart-day"></span>
-                        <span class="energy-chart-day"></span>
+                        <span class="energy-chart-day" data-energy-label></span>
+                        <span class="energy-chart-day" data-energy-label></span>
+                        <span class="energy-chart-day" data-energy-label></span>
+                        <span class="energy-chart-day" data-energy-label></span>
+
+                        <span class="energy-chart-day" data-energy-label></span>
+                        <span class="energy-chart-day" data-energy-label></span>
+                        <span class="energy-chart-day" data-energy-label></span>
+                    </div>
+                    <div class="energy-chart-labels" aria-hidden="true">
+                        <span class="energy-chart-energy" data-energy-energy></span>
+                        <span class="energy-chart-energy" data-energy-energy></span>
+                        <span class="energy-chart-energy" data-energy-energy></span>
+                        <span class="energy-chart-energy" data-energy-energy></span>
+                        
+                        <span class="energy-chart-energy" data-energy-energy></span>
+                        <span class="energy-chart-energy" data-energy-energy></span>
+                        <span class="energy-chart-energy" data-energy-energy></span>
                     </div>
                 </div>
+                <p id="energyError" role="status" ></p>
             </figure>
         </section>
 
@@ -89,6 +103,13 @@
 
                         <label for="newManufacturer">Manufacturer</label>
                         <input id="newManufacturer" name="manufacturer" type="text" required>
+                    </div>
+
+                    <div>
+                        <label for="newPowerWatts">Estimated power draw (W)</label>
+                        <input id="newPowerWatts" name="power_watts" type="number"
+                            min="0.01" max="999999.99" step="0.01"
+                            placeholder="e.g. 60" required>
                     </div>
 
                     <div>

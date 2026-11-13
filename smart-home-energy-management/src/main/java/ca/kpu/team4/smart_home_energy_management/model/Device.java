@@ -1,5 +1,7 @@
 package ca.kpu.team4.smart_home_energy_management.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,8 +30,11 @@ public class Device {
     private String manufacturer;
     @Column (name = "powered_state", nullable = false)
     private boolean powered_state;
+    @Column (name = "power_watts", nullable = false, precision = 8, scale = 2)
+    private BigDecimal power_watts;
     @Column (name = "date_added", nullable = false, insertable = false, updatable = false)
     private String date_added;
+
     
     public int getDevice_id() {
         return device_id;
@@ -71,6 +76,14 @@ public class Device {
         this.powered_state = powered_state;
     }
 
+    public BigDecimal getPower_watts() {
+        return power_watts;
+    }
+
+    public void setPower_watts(BigDecimal power_watts) {
+        this.power_watts = power_watts;
+    }
+
     public String getDate_added() {
         return date_added;
     }
@@ -79,13 +92,13 @@ public class Device {
     public Device() {
         // Default constructor for JPA
     }
-    public Device(int house_id, String device_name, String device_type, String manufacturer, boolean powered_state) {
+    public Device(int house_id, String device_name, String device_type, String manufacturer, boolean powered_state, BigDecimal power_watts) {
         this.house_id = house_id;
         this.device_name = device_name;
         this.device_type = device_type;
         this.manufacturer = manufacturer;
         this.powered_state = powered_state;
-        
+        this.power_watts = power_watts;
     }
 
     

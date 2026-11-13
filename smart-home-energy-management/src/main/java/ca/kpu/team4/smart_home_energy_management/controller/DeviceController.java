@@ -8,6 +8,7 @@ import ca.kpu.team4.smart_home_energy_management.dto.DeviceType;
 import ca.kpu.team4.smart_home_energy_management.model.Device;
 import ca.kpu.team4.smart_home_energy_management.service.DeviceService;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -44,19 +45,19 @@ public class DeviceController {
     @PatchMapping("/api/devices/{deviceId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updatePowerState(@PathVariable("deviceId") int deviceId,
-    @RequestBody PowerStateRequest request) {
+    @RequestBody PowerStateRequest request, Authentication authentication) {
         if (request.powered_state() == null) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, "powered_state is required");
             }
             
-            deviceService.updatePowerState(deviceId, request.powered_state());
+            deviceService.updatePowerState(deviceId, request.powered_state(),authentication.getName());
         }
         
     @DeleteMapping("/api/devices/{deviceId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteDevice(@PathVariable("deviceId") int deviceId) {
-        deviceService.deleteDevice(deviceId);
+    public void deleteDevice(@PathVariable("deviceId") int deviceId, Authentication authentication) {
+        deviceService.deleteDevice(deviceId, authentication.getName());
     }
         
         
@@ -71,7 +72,8 @@ public class DeviceController {
     public record CreateDeviceRequest(
         String device_name,
         DeviceType device_type,
-        String manufacturer
+        String manufacturer,
+        BigDecimal power_watts
     ){}
 
     @PostMapping("/api/devices")
@@ -82,7 +84,9 @@ public class DeviceController {
                 authentication.getName(),
                 request.device_name(),
                 request.device_type(),
-                request.manufacturer());
+                request.manufacturer(),
+                request.power_watts()
+        );
     }
 
     @PatchMapping("/api/family/devices/{deviceId}")

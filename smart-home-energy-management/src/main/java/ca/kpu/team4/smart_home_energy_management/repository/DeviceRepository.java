@@ -3,12 +3,15 @@ package ca.kpu.team4.smart_home_energy_management.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.validator.constraints.pl.REGON;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import ca.kpu.team4.smart_home_energy_management.model.Device;
 
+@Repository
 public interface DeviceRepository 
         extends JpaRepository<Device,Integer> {
     @Query(value = """
@@ -49,4 +52,17 @@ public interface DeviceRepository
         """, nativeQuery = true)
     Optional<Device> findControllableFamilyDevice(
             @Param("deviceId") int deviceId, @Param("email") String email);
+
+    
+    @Query(value = """
+        SELECT d.*
+        FROM smart_devices d
+        JOIN houses h ON h.house_id = d.house_id
+        WHERE d.device_id = :deviceId
+          AND h.user_id = :ownerId
+        FOR UPDATE
+        """, nativeQuery = true)
+    Optional<Device> findOwnedDeviceForUpdate(
+            @Param("deviceId") int deviceId,
+            @Param("ownerId") int ownerId);
 }

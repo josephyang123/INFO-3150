@@ -1,5 +1,4 @@
-
-
+//Declare global variables to hold devices and family members
 let devices = [];
 let familyMembers = [];
 
@@ -49,6 +48,27 @@ async function loadDeviceTypes() {
     );
 }
 
+//Call backend API to get energy history and render the chart. for showing energy history
+async function loadEnergyHistory() {
+    const error = document.getElementById("energyError");
+
+    try {
+        const response = await fetch("/api/energy/daily");
+
+        if (!response.ok) {
+            throw new Error(`Energy request failed (${response.status})`);
+        }
+
+        const days = await response.json();
+        renderEnergyHistory(days);
+        error.textContent = "";
+    } catch (err) {
+        error.textContent = "Could not load energy history.";
+        error.style.color = "red";
+        console.error(err);
+    }
+}
+
 
 const deviceList = document.getElementById("deviceList");
 const deviceCount = document.getElementById("deviceCount");
@@ -63,38 +83,41 @@ const familyCanViewEnergy = document.getElementById("familyCanViewEnergy");
 const permissionStatus = document.getElementById("permissionStatus");
 
 //Render energy history chart
-function renderEnergyHistory() {
-    const now = new Date();
-    const today = document.getElementById("energyDate");
-    const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 10);
-    today.dateTime = localDate;
-    today.textContent = `Today · ${new Intl.DateTimeFormat(undefined, {
-        month: "short",
-        day: "numeric",
-    }).format(now)}`;
+function renderEnergyHistory(days) {
+    const bars = document.querySelectorAll("[data-energy-bar]");
+    const labels = document.querySelectorAll("[data-energy-label]");
+    const energy= document.querySelectorAll("[data-energy-energy]");
+    const maxKwh = Math.max(0, ...days.map(day => day.kwh));
 
-    const chartBars = Array.from(document.querySelectorAll(".energy-chart-bar"));
-    const dayLabels = Array.from(document.querySelectorAll(".energy-chart-day"));
-    const maxUsage = Math.max(...chartBars.map((bar) => Number(bar.dataset.kwh)));
-    const readings = [];
+    days.forEach(({ date, kwh }, index) => {
+        const height = maxKwh > 0 ? (kwh / maxKwh) * 100 : 0;
+        bars[index].style.height = `${height}%`;
+        // bars[index].textContent = ;
+        labels[index].textContent = formatEnergyDate(date, { weekday: "short", day: "numeric" });
+        energy[index].textContent = `${kwh.toFixed(2)} kWh`;
+    });
+    // console.log(
+    //     {bars: bars.length,
+    //      labels: labels.length,
+    //      days: days.length,
+    //      maxKwh: maxKwh
+    //     }
+    // )
 
-    chartBars.forEach((bar, index) => {
-        const usage = Number(bar.dataset.kwh);
-        const date = new Date(now);
-        date.setDate(now.getDate() - (chartBars.length - index - 1));
-        const day = new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(date);
-
-        dayLabels[index].textContent = day;
-        bar.style.height = `${Math.max(8, usage / maxUsage * 100)}%`;
-        readings.push(`${day}: ${usage} kWh`);
+    const today = days[days.length - 1];
+    document.getElementById("energyToday").textContent = today.kwh.toFixed(2);
+    document.getElementById("energyDate").textContent = formatEnergyDate(
+        today.date,
+        { month: "short", day: "numeric" }
+    );
+}
+//Format date for energy history chart
+function formatEnergyDate(date, options) {
+    return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-CA", {
+        ...options,
+        timeZone: "UTC"
     });
 
-    document.querySelector(".energy-chart").setAttribute(
-        "aria-label",
-        `Sample daily energy use for the last seven days: ${readings.join(", ")}.`
-    );
 }
 
 let nextDeviceId = devices.reduce((nextId, device) => Math.max(nextId, device.device_id + 1), 1);
@@ -207,7 +230,7 @@ function renderDevices() {
     deviceEmpty.hidden = devices.length > 0;
     deviceList.replaceChildren(...devices.map(createDeviceRow));
 }
-
+//Show selected permissions for family members
 function showSelectedPermissions() {
     const member = familyMembers.find(
         member => String(member.value) === familyAccount.value
@@ -287,6 +310,7 @@ addDeviceForm.addEventListener("submit", async (event) => {
                 device_name: fields.get("device_name").trim(),
                 device_type: fields.get("device_type"),
                 manufacturer: fields.get("manufacturer").trim(),
+                power_watts: Number(fields.get("power_watts")),
             }),
         });
 
@@ -318,4 +342,4 @@ loadFamilyMembers().catch(error => {
     permissionStatus.textContent = error.message;
 });
 
-renderEnergyHistory();
+loadEnergyHistory();

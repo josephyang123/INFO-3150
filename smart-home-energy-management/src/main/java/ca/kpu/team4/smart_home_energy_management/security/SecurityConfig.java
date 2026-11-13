@@ -52,6 +52,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/family-members").hasRole("HOMEOWNER")
                     .requestMatchers(HttpMethod.PUT, "/api/family-members/*/permissions").hasRole("HOMEOWNER")
+                    .requestMatchers(HttpMethod.GET, "/api/energy/daily").hasRole("HOMEOWNER")
+                    .requestMatchers(HttpMethod.GET, "/api/family/houses/*/energy/daily").hasRole("FAMILY")
                     
                     
                     .requestMatchers("/html/dashboard.html").hasRole("ADMIN")

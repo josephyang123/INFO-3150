@@ -34,6 +34,7 @@ CREATE TABLE smart_devices (
     device_type ENUM('THERMOSTAT', 'SPEAKER', 'DOORBELL', 'LOCK', 'FRIDGE', 'OVEN', 'LIGHT', 'TV', 'KEYCHAIN', 'OTHER')  NOT NULL,
     manufacturer VARCHAR(254),
     powered_state BOOLEAN default 0,
+    power_watts DECIMAL(8, 2) NULL,
     date_added DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY (device_id),
@@ -53,6 +54,22 @@ CREATE TABLE family_members (
     CONSTRAINT uq_family_members_house_user UNIQUE (house_id, user_id),
     CONSTRAINT fk_userid_fm FOREIGN KEY (user_id) REFERENCES user_accounts(user_id),
     CONSTRAINT fk_houseid_fm FOREIGN KEY (house_id) REFERENCES houses(house_id)
+);
+
+CREATE TABLE device_usage_sessions (
+    session_id INT NOT NULL AUTO_INCREMENT,
+    device_id INT NULL,
+    house_id INT NOT NULL,
+    power_watts DECIMAL(8, 2) NOT NULL,
+    started_at DATETIME(6) NOT NULL,
+    ended_at DATETIME(6) NULL,
+
+    PRIMARY KEY (session_id),
+    INDEX idx_usage_house_start (house_id, started_at),
+    INDEX idx_usage_device_end (device_id, ended_at),
+    FOREIGN KEY (device_id) REFERENCES smart_devices(device_id)
+        ON DELETE SET NULL,
+    FOREIGN KEY (house_id) REFERENCES houses(house_id)
 );
 
 INSERT INTO user_accounts(user_name, email, password, account_role) VALUES

@@ -540,7 +540,7 @@ h1 {
 	background: var(--color-primary);
 }
 
-.energy-chart-day {
+.energy-chart-day, .energy-chart-energy {
 	text-align: center;
 	color: var(--color-muted);
 	font-size: 10px;
