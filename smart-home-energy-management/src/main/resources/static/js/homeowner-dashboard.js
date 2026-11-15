@@ -2,6 +2,26 @@
 let devices = [];
 let familyMembers = [];
 
+async function loadAccountGreeting() {
+    const response = await fetch("/api/me", { cache: "no-store" });
+    if (response.status === 401) {
+        document.getElementById("accountStatus").textContent = "Your session has ended. Please sign in again.";
+        document.getElementById("accountSignIn").hidden = false;
+        return;
+    }
+    if (!response.ok) {
+        throw new Error(`Could not load account details (${response.status}).`);
+    }
+
+    const account = await response.json();
+    if (typeof account.name !== "string" || !account.name.trim()) {
+        throw new Error("Could not load account name.");
+    }
+    const welcome = document.getElementById("homeownerWelcome");
+    welcome.textContent = `Welcome back, ${account.name}.`;
+    welcome.hidden = false;
+}
+
 //Call backend API to get family members
 async function loadFamilyMembers() {
     const response = await fetch("/api/family-members");
@@ -14,6 +34,8 @@ async function loadFamilyMembers() {
     familyAccount.replaceChildren(
         ...familyMembers.map(({ value, label }) => new Option(label, value))
     );
+    permissionsForm.hidden = familyMembers.length === 0;
+    familyPermissionsEmpty.hidden = familyMembers.length !== 0;
 
 
     showSelectedPermissions();
@@ -76,6 +98,7 @@ const deviceEmpty = document.getElementById("deviceEmpty");
 const addDeviceForm = document.getElementById("addDeviceForm");
 const newDeviceType = document.getElementById("newDeviceType");
 const permissionsForm = document.getElementById("permissionsForm");
+const familyPermissionsEmpty = document.getElementById("familyPermissionsEmpty");
 const familyAccount = document.getElementById("familyAccount");
 const familyCanView = document.getElementById("familyCanView");
 const familyCanControl = document.getElementById("familyCanControl");
@@ -329,6 +352,10 @@ addDeviceForm.addEventListener("submit", async (event) => {
     loadDevices().catch(() => {
         alert("Device added, but the list could not refresh. Reload the page.");
     });
+});
+
+loadAccountGreeting().catch(error => {
+    document.getElementById("accountStatus").textContent = error.message;
 });
 
 loadDevices().catch(error=>{

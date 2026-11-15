@@ -10,6 +10,9 @@ import ca.kpu.team4.smart_home_energy_management.model.User;
 @Service 
 public class RegisterService {
 
+    public static class DuplicateEmailException extends RuntimeException {
+    }
+
     private final RegisterRepository registerRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -32,7 +35,7 @@ public class RegisterService {
         }
 
         if(registerRepository.existsByEmail(request.email())){
-            throw new ResponseStatusException(400, "Email already exists", null);
+            throw new DuplicateEmailException();
         }
 
         String hashedPassword = passwordEncoder.encode(request.password());

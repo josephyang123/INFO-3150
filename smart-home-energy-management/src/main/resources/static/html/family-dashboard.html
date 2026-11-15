@@ -13,8 +13,7 @@
     <header class="dashboard-header">
         <a class="wordmark" href="/html/index.html">Smart Home Energy Management System</a>
         <div class="dashboard-header-actions">
-            <!-- Prototype only: this link returns to welcome and does not end a session. TODO (Backend): invalidate the session here once authentication exists. -->
-            <button class-"exit-preview" id="logoutButton">Log Out</button>
+            <button class="exit-preview" id="logoutButton">Log Out</button>
         </div>
     </header>
 
@@ -23,16 +22,18 @@
             <div>
                 <p class="eyebrow">SMART HOME</p>
                 <h1 id="dashboard-title">Family dashboard</h1>
-                <p class="dashboard-description">Your home and assigned device access.</p>
+                <p class="dashboard-description">Welcome to your family dashboard.</p>
+                <div class="family-account-details" id="familyAccountDetails" hidden>
+                    <p id="familySingleHouse"><span>House:</span><strong id="familyHouseName"></strong></p>
+                    <div id="familyHouseChoice" hidden>
+                        <label for="familyHouse">House:</label>
+                        <select id="familyHouse"></select>
+                    </div>
+                    <p><span>Role:</span><strong>Family Member</strong></p>
+                </div>
+                <p id="familyAccountDisplay" role="status"></p>
+                <a href="/html/login.html" id="familySignIn" hidden>Sign in</a>
             </div>
-        </section>
-
-        <section class="family-account-card dashboard-card" aria-labelledby="family-account-title">
-            <p class="eyebrow">FAMILY ACCOUNT</p>
-            <h2 id="family-account-title">Family member</h2>
-            <p id="familyAccountDisplay"></p>
-            <label for="familyHouse">House</label>
-            <select id="familyHouse"></select>
         </section>
 
         <section class="energy-overview dashboard-card" id="energySummary" aria-labelledby="energy-title" hidden>

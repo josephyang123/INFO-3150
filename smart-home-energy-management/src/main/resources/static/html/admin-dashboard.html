@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f1f2f4">
+    <title>Admin dashboard | Smart Home Energy Management System</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-dashboard.css">
+    <script src="/js/app.js" defer></script>
+    <script src="/js/admin-dashboard.js" defer></script>
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <span class="wordmark">Smart Home Energy Management System</span>
+        <div class="dashboard-header-actions">
+            <button class="action action-secondary" id="logoutButton" type="button">Log out</button>
+        </div>
+    </header>
+
+    <main class="dashboard-main admin-preview-main">
+        <section class="dashboard-heading" aria-labelledby="admin-title">
+            <div>
+                <p class="eyebrow">ADMINISTRATION</p>
+                <h1 id="admin-title">House management</h1>
+                <p class="dashboard-description">Review houses and manage household accounts.</p>
+            </div>
+            <button class="action action-primary" id="openCreate" type="button" disabled>+ Add house</button>
+        </section>
+        <p class="admin-availability" id="availabilityNote" hidden>No unassigned family accounts are available.</p>
+        <p class="admin-form-message" id="adminMessage" role="status" aria-live="polite">Loading houses and accounts...</p>
+        <button class="action action-secondary admin-small-action" id="retryLoad" type="button" hidden>Refresh data</button>
+        <a id="signInLink" href="/html/login.html" hidden>Sign in</a>
+
+        <div class="admin-layout">
+            <section class="dashboard-card admin-houses" aria-labelledby="houses-title">
+                <div class="admin-section-heading">
+                    <div>
+                        <p class="eyebrow">HOUSE OVERVIEW</p>
+                        <h2 id="houses-title">Houses</h2>
+                        <p class="admin-description">Select a house to view its household.</p>
+                    </div>
+                    <span class="admin-count" id="houseCount"></span>
+                </div>
+                <div class="admin-house-list" id="houseList"></div>
+            </section>
+            <section class="dashboard-card admin-detail" aria-labelledby="houseHeading">
+                <p class="eyebrow">HOUSEHOLD MANAGEMENT</p>
+                <h2 id="houseHeading" tabindex="-1">Select a house</h2>
+                <p class="admin-description" id="managePrompt">Choose a house from the overview to get started.</p>
+                <div id="manageHouse" hidden>
+                    <section class="admin-detail-section admin-owner-section" aria-labelledby="owner-title">
+                        <div class="admin-owner-layout">
+                            <div class="admin-owner-info">
+                                <h3 id="owner-title">Homeowner</h3>
+                                <p class="admin-person-name" id="ownerName"></p>
+                                <p class="admin-person-email" id="ownerEmail"></p>
+                            </div>
+                            <button class="action action-primary admin-small-action" id="openTransfer" type="button">Transfer owner</button>
+                        </div>
+                        <p class="admin-description admin-empty-note" id="transferNote" hidden>No eligible accounts are available for transfer.</p>
+                    </section>
+                    <section class="admin-detail-section" aria-labelledby="members-title">
+                        <div class="admin-section-heading">
+                            <div>
+                                <h3 id="members-title">Family members</h3>
+                                <p class="admin-description">New members start with no permissions.</p>
+                            </div>
+                            <button class="action action-secondary admin-small-action" id="openAdd" type="button">+ Add member</button>
+                        </div>
+                        <div class="admin-member-list" id="memberList"></div>
+                    </section>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <dialog class="admin-dialog" id="createDialog" aria-labelledby="create-title">
+        <p class="eyebrow">NEW HOUSE</p>
+        <h2 id="create-title">Add a house</h2>
+        <p class="admin-description">Choose an unassigned account as its first homeowner.</p>
+        <form id="createHouseForm" class="admin-form">
+            <div class="form-field">
+                <label for="houseName">House name</label>
+                <input id="houseName" type="text" maxlength="254" required>
+            </div>
+            <div class="form-field">
+                <label for="firstOwner">Homeowner</label>
+                <select id="firstOwner" required></select>
+            </div>
+            <p class="admin-description">The selected account becomes a homeowner and must sign in again.</p>
+            <p class="admin-dialog-error" id="createError" role="alert"></p>
+            <div class="admin-dialog-actions">
+                <button class="action action-secondary" id="cancelCreate" type="button">Cancel</button>
+                <button class="action action-primary" type="submit">Add house</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="admin-dialog" id="addDialog" aria-labelledby="add-title">
+        <p class="eyebrow">FAMILY MEMBERS</p>
+        <h2 id="add-title">Add a family member</h2>
+        <p class="admin-description">Choose an unassigned account. New members start with no permissions.</p>
+        <form id="addMemberForm" class="admin-form">
+            <div class="form-field">
+                <label for="addMember">Account</label>
+                <select id="addMember" required></select>
+            </div>
+            <p class="admin-dialog-error" id="addError" role="alert"></p>
+            <div class="admin-dialog-actions">
+                <button class="action action-secondary" id="cancelAdd" type="button">Cancel</button>
+                <button class="action action-primary" type="submit">Add member</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="admin-dialog" id="transferDialog" aria-labelledby="transfer-title">
+        <p class="eyebrow">OWNERSHIP</p>
+        <h2 id="transfer-title">Transfer ownership</h2>
+        <p class="admin-description">Choose a member of this house or an unassigned account.</p>
+        <form id="transferForm" class="admin-form">
+            <div class="form-field">
+                <label for="newOwner">New homeowner</label>
+                <select id="newOwner" required></select>
+            </div>
+            <div class="admin-dialog-actions">
+                <button class="action action-secondary" id="cancelTransfer" type="button">Cancel</button>
+                <button class="action action-primary" type="submit">Review transfer</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog class="admin-dialog" id="confirmation" aria-labelledby="confirm-title" aria-describedby="confirmationText">
+        <p class="eyebrow">HOUSEHOLD MANAGEMENT</p>
+        <h2 id="confirm-title"></h2>
+        <p class="admin-description" id="confirmationText"></p>
+        <p class="admin-dialog-error" id="confirmError" role="alert"></p>
+        <div class="admin-dialog-actions">
+            <button class="action action-secondary" id="cancelAction" type="button">Cancel</button>
+            <button class="action action-primary" id="confirmAction" type="button">Confirm</button>
+        </div>
+    </dialog>
+</body>
+</html>

@@ -26,15 +26,21 @@ form.addEventListener("submit", async (event) => {
         const csrf = await csrfResponse.json();
 
 
-		const response = await fetch("/api/login", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                [csrf.headerName]: csrf.token,
-            },
-            body: new URLSearchParams({ email, password }),
-        });
+		const signIn = value => fetch("/api/login", {
+		    method: "POST",
+		    credentials: "same-origin",
+		    headers: {
+		        "Content-Type": "application/x-www-form-urlencoded",
+		        [csrf.headerName]: csrf.token,
+		    },
+		    body: new URLSearchParams({ email, password: value }),
+		});
+
+		let response = await signIn(password);
+		const trimmedPassword = password.trim();
+		if (response.status === 401 && trimmedPassword && trimmedPassword !== password) {
+		    response = await signIn(trimmedPassword);
+		}
 
         if (response.status === 401) {
             throw new Error("Invalid email or password.");
@@ -60,7 +66,7 @@ form.addEventListener("submit", async (event) => {
         const user = await userResponse.json();
 
         const dashboards = {
-            ADMIN: "/html/dashboard.html",
+            ADMIN: "/html/admin-dashboard.html",
             FAMILY: "/html/family-dashboard.html",
             HOMEOWNER: "/html/homeowner-dashboard.html",
         };

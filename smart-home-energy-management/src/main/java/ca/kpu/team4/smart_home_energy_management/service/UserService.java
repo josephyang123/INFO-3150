@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import ca.kpu.team4.smart_home_energy_management.model.User;
 import ca.kpu.team4.smart_home_energy_management.repository.LoginRepository;
-import ca.kpu.team4.smart_home_energy_management.repository.RegisterRepository;
+import ca.kpu.team4.smart_home_energy_management.security.SessionUserDetails;
 
 @Service 
 public class UserService implements UserDetailsService {
@@ -26,11 +26,8 @@ public class UserService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("User not found with email: " + email);
         }
-        return org.springframework.security.core.userdetails.User
-                .withUsername(email)
-                .password(user.getPasswordHash())
-                .roles(user.getAccount_role()) 
-                .build();
+        return new SessionUserDetails(email, user.getPasswordHash(),
+                user.getAccount_role(), user.getSessionVersion());
         
         
     }

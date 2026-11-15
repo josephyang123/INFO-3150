@@ -1,5 +1,7 @@
 package ca.kpu.team4.smart_home_energy_management.model;
 
+import java.util.Objects;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,6 +27,9 @@ public class User {
     @Column (name = "account_role", nullable = false)
     private String account_role;
 
+    @Column(name = "session_version", nullable = false)
+    private long sessionVersion;
+
     public String getAccount_role() {
         return account_role;
     }
@@ -33,8 +38,19 @@ public class User {
         return id;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
     public void setAccount_role(String account_role) {
-        this.account_role = account_role;
+        if (!Objects.equals(this.account_role, account_role)) {
+            this.account_role = account_role;
+            sessionVersion++;
+        }
+    }
+
+    public long getSessionVersion() {
+        return sessionVersion;
     }
 
     public String getPasswordHash() {

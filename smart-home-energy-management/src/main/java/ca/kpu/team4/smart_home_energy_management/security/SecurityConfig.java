@@ -12,7 +12,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 
+import ca.kpu.team4.smart_home_energy_management.repository.LoginRepository;
 import ca.kpu.team4.smart_home_energy_management.service.UserService;
 
 @Configuration 
@@ -26,13 +28,14 @@ public class SecurityConfig {
     @Bean 
     public SecurityFilterChain securityFilterChain(HttpSecurity http
         ,UserService userService
-        ,PasswordEncoder passwordEncoder)throws Exception {
+        ,PasswordEncoder passwordEncoder, LoginRepository loginRepository)throws Exception {
 
             DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userService);
             authProvider.setPasswordEncoder(passwordEncoder);
 
             http
                 .authenticationProvider(authProvider)
+                .addFilterAfter(new RoleChangeFilter(loginRepository), SecurityContextHolderFilter.class)
                 .csrf(Customizer.withDefaults())
                 .sessionManagement(session-> session
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -50,13 +53,14 @@ public class SecurityConfig {
                     ).permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/csrf").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/family-members").hasRole("HOMEOWNER")
                     .requestMatchers(HttpMethod.PUT, "/api/family-members/*/permissions").hasRole("HOMEOWNER")
                     .requestMatchers(HttpMethod.GET, "/api/energy/daily").hasRole("HOMEOWNER")
                     .requestMatchers(HttpMethod.GET, "/api/family/houses/*/energy/daily").hasRole("FAMILY")
                     
                     
-                    .requestMatchers("/html/dashboard.html").hasRole("ADMIN")
+                    .requestMatchers("/html/admin-dashboard.html", "/html/dashboard.html").hasRole("ADMIN")
                     .requestMatchers("/html/family-dashboard.html").hasRole("FAMILY")
                     .requestMatchers("/html/homeowner-dashboard.html").hasRole("HOMEOWNER")
                     .requestMatchers("/api/family/**").hasRole("FAMILY")

@@ -262,6 +262,43 @@ h1 {
 	gap: 13px;
 }
 
+.app-dialog {
+	width: min(100% - 48px, 390px);
+	padding: 28px;
+	border: 1px solid var(--color-border);
+	border-radius: 8px;
+	background: var(--color-surface);
+	color: var(--color-ink);
+	box-shadow: 0 16px 48px rgb(21 26 41 / 20%);
+}
+
+.app-dialog::backdrop {
+	background: rgb(21 26 41 / 50%);
+}
+
+.app-dialog h2 {
+	margin: 0 0 10px;
+	font-size: 22px;
+}
+
+.app-dialog p {
+	margin: 0 0 22px;
+	color: var(--color-muted);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.app-dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.app-dialog-actions .action {
+	min-height: 40px;
+	padding: 9px 14px;
+}
+
 .dashboard-body {
 	background: var(--color-background);
 }
@@ -323,6 +360,14 @@ h1 {
 
 .exit-preview:hover {
 	color: var(--color-primary-hover);
+}
+
+button.exit-preview {
+	padding: 0;
+	border: 0;
+	background: transparent;
+	font-family: inherit;
+	cursor: pointer;
 }
 
 .dashboard-main {
@@ -666,10 +711,6 @@ h1 {
 	font-size: 11px;
 }
 
-.permission-heading {
-	text-align: center;
-}
-
 .permission-heading > p,
 .family-details > p {
 	margin: 7px 0 0;
@@ -686,8 +727,6 @@ h1 {
 }
 
 .permission-account {
-	width: calc(100% - 24px);
-	margin-inline: auto;
 	display: grid;
 	gap: 8px;
 }
@@ -772,6 +811,7 @@ h1 {
 
 .add-device-controls select {
 	min-width: 0;
+	min-height: 46px;
 	flex: 1;
 	padding: 10px 11px;
 	border: 1px solid #c9ced2;
@@ -789,9 +829,15 @@ h1 {
 	white-space: nowrap;
 }
 
+.add-device-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 11px;
+}
+
 .permission-fieldset {
 	margin: 0;
-	padding-block: 8px;
+	padding: 8px 0 0;
 	display: grid;
 	align-content: start;
 	gap: 12px;
@@ -867,35 +913,97 @@ h1 {
 }
 
 .permission-status {
-	margin: -8px 0 0;
+	margin: 0;
 	color: var(--color-muted);
 	font-size: 12px;
 }
 
 .permission-actions {
 	display: grid;
-	justify-items: center;
+	justify-items: end;
 	gap: 10px;
 }
 
 .permission-status {
-	text-align: center;
+	text-align: right;
 }
 
-.family-account-card {
-	margin-top: 18px;
-	padding: 18px 20px;
+.family-dashboard-main .dashboard-heading > div {
+	flex: 1;
+	min-width: 0;
 }
 
-.family-account-card h2 {
-	margin: 6px 0 2px;
+.family-dashboard-main .dashboard-heading h1 {
+	font-size: 46px;
+	overflow-wrap: anywhere;
+}
+
+.family-dashboard-main .dashboard-description {
 	font-size: 18px;
 }
 
-.family-account-card > p:last-child {
+.homeowner-welcome {
+	margin: 0 0 4px;
+	font-size: 18px;
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.family-account-details {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 24px;
+	margin-top: 16px;
+}
+
+.family-account-details p,
+.family-account-details > div {
 	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	min-width: 0;
+}
+
+.family-account-details span,
+.family-account-details label {
 	color: var(--color-muted);
 	font-size: 14px;
+}
+
+.family-account-details strong {
+	font-size: 14px;
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.family-account-details select {
+	max-width: 210px;
+	min-width: 0;
+	min-height: 40px;
+	padding: 8px;
+	border: 1px solid #c9ced2;
+	border-radius: 5px;
+	background: var(--color-surface);
+	color: var(--color-ink);
+	font: inherit;
+}
+
+.family-account-details select:focus-visible {
+	outline: 3px solid #86bfd0;
+	outline-offset: 2px;
+}
+
+#familyAccountDisplay,
+#accountStatus {
+	margin: 12px 0 0;
+	color: var(--color-muted);
+	font-size: 14px;
+}
+
+#familyAccountDisplay:empty,
+#accountStatus:empty {
+	display: none;
 }
 
 .family-no-access {
@@ -1015,6 +1123,10 @@ h1 {
 
 	.dashboard-heading h1 {
 		font-size: 34px;
+	}
+
+	.family-dashboard-main .dashboard-heading h1 {
+		font-size: 36px;
 	}
 
 	.role-preview {

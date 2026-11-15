@@ -5,7 +5,13 @@ let permissions = {};
 
 
 const familyHouse = document.getElementById("familyHouse");
+const familyHouseChoice = document.getElementById("familyHouseChoice");
+const familySingleHouse = document.getElementById("familySingleHouse");
+const familyHouseName = document.getElementById("familyHouseName");
+const familyAccountDetails = document.getElementById("familyAccountDetails");
+const dashboardTitle = document.getElementById("dashboard-title");
 const familyAccountDisplay = document.getElementById("familyAccountDisplay");
+const familySignIn = document.getElementById("familySignIn");
 const energySummary = document.getElementById("energySummary");
 const deviceSection = document.getElementById("deviceSection");
 const deviceList = document.getElementById("deviceList");
@@ -17,8 +23,27 @@ let energyRequest;
 
 async function loadFamilyDashboard() {
     const response = await fetch("/api/family/dashboard");
+    if (response.status === 401) {
+        familyAccountDisplay.textContent = "Your session has ended. Please sign in again.";
+        familySignIn.hidden = false;
+        return;
+    }
     if (!response.ok) {
         throw new Error(`Could not load family dashboard (${response.status}).`);
+    }
+
+    const accountResponse = await fetch("/api/me", { cache: "no-store" });
+    if (accountResponse.status === 401) {
+        familyAccountDisplay.textContent = "Your session has ended. Please sign in again.";
+        familySignIn.hidden = false;
+        return;
+    }
+    if (!accountResponse.ok) {
+        throw new Error(`Could not load account details (${accountResponse.status}).`);
+    }
+    const account = await accountResponse.json();
+    if (typeof account.name !== "string" || !account.name.trim()) {
+        throw new Error("Could not load account name.");
     }
 
     const dashboard = await response.json();
@@ -34,13 +59,18 @@ async function loadFamilyDashboard() {
         })),
     }));
 
-    familyAccountDisplay.textContent =
-        houses[0]?.memberName ?? "No house assigned to this account.";
+    dashboardTitle.textContent = `Hi ${account.name}`;
+    familyAccountDisplay.textContent = houses.length === 0
+        ? "Ask an administrator to add you to a house." : "";
 
     familyHouse.replaceChildren(
         ...houses.map(house => new Option(house.houseName, house.houseId))
     );
     familyHouse.disabled = houses.length === 0;
+    familyHouseChoice.hidden = houses.length <= 1;
+    familySingleHouse.hidden = houses.length > 1;
+    familyHouseName.textContent = houses.length === 1 ? houses[0].houseName : "Unassigned";
+    familyAccountDetails.hidden = false;
     showSelectedHouse();
 }
 async function loadEnergyHistory(houseId) {
@@ -119,7 +149,7 @@ function showSelectedHouse() {
 
     energySummary.hidden = !permissions.canViewEnergy;
     deviceSection.hidden = !permissions.canViewDevices;
-    noDeviceAccess.hidden = Boolean(permissions.canViewDevices);
+    noDeviceAccess.hidden = !house || Boolean(permissions.canViewDevices);
 
     renderDevices();
     if (house?.canViewEnergy) {

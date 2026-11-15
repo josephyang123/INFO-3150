@@ -11,6 +11,23 @@ import ca.kpu.team4.smart_home_energy_management.model.User;
 
 public interface FamilymemberRepository extends Repository<User, Integer> {
 
+    @Query(value = "SELECT COUNT(*) FROM family_members WHERE user_id = :userId", nativeQuery = true)
+    long countForUser(@Param("userId") int userId);
+
+    @Query(value = "SELECT house_id FROM family_members WHERE user_id = :userId", nativeQuery = true)
+    List<Integer> findHouseIdsForUser(@Param("userId") int userId);
+
+    @Modifying
+    @Query(value = """
+        INSERT INTO family_members (house_id, user_id, can_view_device, can_edit_device, can_view_stats)
+        VALUES (:houseId, :userId, 0, 0, 0)
+        """, nativeQuery = true)
+    int addMember(@Param("houseId") int houseId, @Param("userId") int userId);
+
+    @Modifying
+    @Query(value = "DELETE FROM family_members WHERE house_id = :houseId AND user_id = :userId", nativeQuery = true)
+    int removeMember(@Param("houseId") int houseId, @Param("userId") int userId);
+
     interface MemberRow {
         int getMemberId();
         String getMemberName();
