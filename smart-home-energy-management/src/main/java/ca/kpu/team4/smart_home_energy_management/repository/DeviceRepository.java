@@ -65,4 +65,27 @@ public interface DeviceRepository
     Optional<Device> findOwnedDeviceForUpdate(
             @Param("deviceId") int deviceId,
             @Param("ownerId") int ownerId);
+
+
+
+
+
+    // Find devices that have an automation action configured.
+    @Query(value = """
+        SELECT device_id
+        FROM smart_devices
+        WHERE automation IN ('TURN_ON', 'TURN_OFF')
+        ORDER BY device_id
+        """, nativeQuery = true)
+    List<Integer> findAutomationDeviceIds();
+
+// Load and lock one device while its automation is evaluated.
+    @Query(value = """
+        SELECT d.*
+        FROM smart_devices d
+        WHERE d.device_id = :deviceId
+        FOR UPDATE
+        """, nativeQuery = true)
+    Optional<Device> findDeviceForUpdate(
+            @Param("deviceId") int deviceId);
 }

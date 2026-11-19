@@ -242,7 +242,20 @@ function createDeviceRow(device) {
     });
        
 
-    controls.append(state, toggle, remove);
+    const automationButton = document.createElement("button");
+    automationButton.type = "button";
+    automationButton.className = "action action-secondary automation-button";
+    automationButton.textContent = "Automation";
+    automationButton.setAttribute(
+        "aria-label",
+        `Configure automation for ${device.device_name}`
+    );
+
+    automationButton.addEventListener("click", () => {
+        openAutomationDialog(device);
+    });
+
+    controls.append(state, toggle, automationButton, remove);
     row.append(identity, controls);
     return row;
 }
@@ -354,6 +367,7 @@ addDeviceForm.addEventListener("submit", async (event) => {
     });
 });
 
+
 loadAccountGreeting().catch(error => {
     document.getElementById("accountStatus").textContent = error.message;
 });
@@ -370,3 +384,128 @@ loadFamilyMembers().catch(error => {
 });
 
 loadEnergyHistory();
+
+
+
+
+const automationDialog = document.getElementById("automationDialog");
+const automationForm = document.getElementById("automationForm");
+const automationAction = document.getElementById("automationAction");
+const automationComparison =
+    document.getElementById("automationComparison");
+const automationThreshold =
+    document.getElementById("automationThreshold");
+const automationCondition =
+    document.getElementById("automationCondition");
+const automationStatus = document.getElementById("automationStatus");
+const automationCancel = document.getElementById("automationCancel");
+
+let automationDeviceId = null;
+let automationSaving = false;
+
+function updateAutomationFields() {
+    automationCondition.disabled =
+        automationAction.value === "DO_NOTHING";
+}
+
+function openAutomationDialog(device) {
+    automationDeviceId = device.device_id;
+
+    document.getElementById("automationTitle").textContent =
+        `Automation: ${device.device_name}`;
+
+    automationAction.value = device.automation ?? "DO_NOTHING";
+    automationComparison.value =
+        device.automation_comparison ?? "GT";
+    automationThreshold.value =
+        device.automation_threshold_kwh ?? "";
+
+    automationStatus.textContent = "";
+    updateAutomationFields();
+    automationDialog.showModal();
+}
+
+automationAction.addEventListener("change", updateAutomationFields);
+
+automationCancel.addEventListener("click", () => {
+    if (!automationSaving) {
+        automationDialog.close();
+    }
+});
+
+// Prevent Escape from closing the window during a save.
+automationDialog.addEventListener("cancel", event => {
+    if (automationSaving) {
+        event.preventDefault();
+    }
+});
+
+automationForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    if (automationSaving || automationDeviceId === null) {
+        return;
+    }
+
+    const action = automationAction.value;
+    const disabled = action === "DO_NOTHING";
+
+    const settings = {
+        automation: action,
+        automation_comparison:
+            disabled ? null : automationComparison.value,
+        automation_threshold_kwh:
+            disabled ? null : Number(automationThreshold.value),
+    };
+
+    automationSaving = true;
+    automationStatus.textContent = "Saving…";
+
+    const controls =
+        automationForm.querySelectorAll("input, select, button");
+    controls.forEach(control => {
+        control.disabled = true;
+    });
+
+    let saved = false;
+
+    try {
+        const response = await fetchWithCsrf(
+            `/api/devices/${automationDeviceId}/automation`,
+            {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(settings),
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `Could not save automation (${response.status}).`
+            );
+        }
+
+        saved = true;
+    } catch (error) {
+        automationStatus.textContent = error.message;
+    } finally {
+        automationSaving = false;
+        controls.forEach(control => {
+            control.disabled = false;
+        });
+        updateAutomationFields();
+    }
+
+    if (saved) {
+        automationDialog.close();
+
+        try {
+            await loadDevices();
+        } catch (error) {
+            alert(
+                "Automation saved, but the device list could not "
+                + "refresh. Reload the page."
+            );
+        }
+    }
+});

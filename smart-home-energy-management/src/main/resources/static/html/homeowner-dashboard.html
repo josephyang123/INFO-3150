@@ -156,6 +156,67 @@
             </section>
         </div>
     </main>
+        <dialog class="app-dialog automation-dialog"
+                id="automationDialog"
+                aria-labelledby="automationTitle">
+
+            <h2 id="automationTitle">Device automation</h2>
+
+            <p>
+                Uses today's total house energy.
+                Runs once per day when the condition matches.
+                Saving re-arms the rule.
+            </p>
+
+            <form id="automationForm" class="automation-form">
+                <div class="form-field">
+                    <label for="automationAction">Action for this device</label>
+                    <select id="automationAction">
+                        <option value="DO_NOTHING">Do nothing — disabled</option>
+                        <option value="TURN_ON">Turn on</option>
+                        <option value="TURN_OFF">Turn off</option>
+                    </select>
+                </div>
+
+                <fieldset id="automationCondition"
+                        class="automation-condition">
+                    <legend>When today's house usage is:</legend>
+
+                    <div class="form-field">
+                        <label for="automationComparison">Comparison</label>
+                        <select id="automationComparison">
+                            <option value="GT">Above</option>
+                            <option value="LT">Below</option>
+                        </select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="automationThreshold">Threshold in kWh</label>
+                        <input id="automationThreshold"
+                            type="number"
+                            min="0"
+                            max="999999.9999"
+                            step="0.0001"
+                            placeholder="e.g. 10"
+                            required>
+                    </div>
+                </fieldset>
+
+                <p id="automationStatus" role="status"></p>
+
+                <div class="app-dialog-actions">
+                    <button class="action action-secondary"
+                            type="button"
+                            id="automationCancel">
+                        Cancel
+                    </button>
+
+                    <button class="action action-primary" type="submit">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </dialog>
             <script src="/js/app.js" defer></script>
 
 </body>

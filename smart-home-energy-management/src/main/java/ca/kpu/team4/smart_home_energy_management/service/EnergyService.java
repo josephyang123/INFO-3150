@@ -111,6 +111,62 @@ public class EnergyService {
         return totals;
     }
 
+
+
+    public double getTodayKwhForHouse(int houseId) {
+        // Capture the current time.
+        Instant currentTime = Instant.now();
+
+        // Usage session timestamps are stored in UTC.
+        LocalDateTime nowUtc =
+                LocalDateTime.ofInstant(currentTime, ZoneOffset.UTC);
+
+        // Decide which day it is in Vancouver.
+        LocalDate today =
+                currentTime.atZone(VANCOUVER).toLocalDate();
+
+        // Convert today's Vancouver midnight into UTC.
+        LocalDateTime dayStart = midnightUtc(today);
+
+        // Get usage sessions that overlap today for this house.
+        List<DeviceUsage> sessions =
+                deviceUsageRepository.findHouseSessionsOverlappingWindow(
+                        houseId, dayStart, nowUtc);
+
+        double totalKwh = 0.0;
+
+        for (DeviceUsage session : sessions) {
+            LocalDateTime sessionStart = session.getStart_time();
+            LocalDateTime sessionEnd = session.getEnd_time();
+
+            // No end time means the device is still running.
+            if (sessionEnd == null) {
+                sessionEnd = nowUtc;
+            }
+
+            // Only count the portion of this session inside today.
+            LocalDateTime overlapStart =
+                    sessionStart.isAfter(dayStart)
+                            ? sessionStart : dayStart;
+
+            LocalDateTime overlapEnd =
+                    sessionEnd.isBefore(nowUtc)
+                            ? sessionEnd : nowUtc;
+
+            if (overlapEnd.isAfter(overlapStart)) {
+                double hours =
+                        Duration.between(overlapStart, overlapEnd)
+                                .toMillis() / 3_600_000.0;
+
+                totalKwh +=
+                        session.getPower_watts().doubleValue()
+                                * hours / 1000.0;
+            }
+        }
+
+        return totalKwh;
+    }
+
     private static LocalDateTime midnightUtc(LocalDate date) {
             return date.atStartOfDay(VANCOUVER)
                     .withZoneSameInstant(ZoneOffset.UTC)

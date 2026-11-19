@@ -353,5 +353,5 @@ retryLoad.addEventListener("click", async () => {
     setBusy(false);
 });
 
-setBusy(true);
+setBusy(false);
 loadData().finally(() => setBusy(false));

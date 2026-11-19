@@ -1188,3 +1188,61 @@ button.exit-preview {
 		flex-direction: column;
 	}
 }
+
+
+.automation-dialog {
+    width: min(100% - 40px, 460px);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.automation-form,
+.automation-condition {
+    display: grid;
+    gap: 14px;
+}
+
+.automation-condition {
+    min-width: 0;
+    margin: 0;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+}
+
+.automation-condition legend {
+    padding-inline: 5px;
+    font-size: 14px;
+}
+
+.automation-condition:disabled {
+    opacity: 0.55;
+}
+
+.automation-form select {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font: inherit;
+}
+
+.automation-button {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 13px;
+}
+
+.homeowner-dashboard-main .device-row,
+.homeowner-dashboard-main .device-control {
+    flex-wrap: wrap;
+}
+
+#automationStatus {
+    margin: 0;
+    color: var(--color-error);
+    font-size: 13px;
+}

@@ -1,6 +1,7 @@
 package ca.kpu.team4.smart_home_energy_management.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,6 +35,16 @@ public class Device {
     private BigDecimal power_watts;
     @Column (name = "date_added", nullable = false, insertable = false, updatable = false)
     private String date_added;
+    @Column (name = "automation", nullable = false)
+    private String automation = "DO_NOTHING";
+    @Column(name = "automation_threshold_kwh", precision = 10, scale = 4)
+    private BigDecimal automation_threshold_kwh;
+
+    @Column(name = "automation_comparison")
+    private String automation_comparison;
+
+    @Column(name = "automation_last_triggered_date")
+    private LocalDate automation_last_triggered_date;
 
     
     public int getDevice_id() {
@@ -86,6 +97,38 @@ public class Device {
 
     public String getDate_added() {
         return date_added;
+    }
+
+    public String getAutomation() {
+        return automation;
+    }
+
+    public void setAutomation(String automation) {
+        this.automation = automation;
+    }
+
+    public BigDecimal getAutomation_threshold_kwh() {
+        return automation_threshold_kwh;
+    }
+
+    public void setAutomation_threshold_kwh(BigDecimal value) {
+        this.automation_threshold_kwh = value;
+    }
+
+    public String getAutomation_comparison() {
+        return automation_comparison;
+    }
+
+    public void setAutomation_comparison(String value) {
+        this.automation_comparison = value;
+    }
+
+    public LocalDate getAutomation_last_triggered_date() {
+        return automation_last_triggered_date;
+    }
+
+    public void setAutomation_last_triggered_date(LocalDate value) {
+        this.automation_last_triggered_date = value;
     }
 
 

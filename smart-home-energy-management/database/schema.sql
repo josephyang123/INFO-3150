@@ -1,16 +1,16 @@
--- Fresh installation only. Do not run this script against an existing database.
--- Accounts, houses, and devices are created through the application.
 CREATE DATABASE IF NOT EXISTS smart_db
     CHARACTER SET utf8mb4;
 USE smart_db;
+-- DROP DATABASE smart_db;
+
+
 CREATE TABLE user_accounts (
     user_id INT NOT NULL AUTO_INCREMENT,
     user_name VARCHAR(50) NOT NULL,
     email VARCHAR(254) NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    passwrd VARCHAR(255) NOT NULL,
     creation_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	account_role ENUM('FAMILY', 'HOMEOWNER', 'ADMIN') DEFAULT 'FAMILY',
-    session_version BIGINT NOT NULL DEFAULT 0,
 
     PRIMARY KEY (user_id),
     UNIQUE (email)
@@ -36,6 +36,10 @@ CREATE TABLE smart_devices (
     powered_state BOOLEAN default 0,
     power_watts DECIMAL(8, 2) NULL,
     date_added DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    automation ENUM("TURN_ON", "TURN_OFF", "DO_NOTHING") NOT NULL DEFAULT "DO_NOTHING",
+    automation_threshold_kwh DECIMAL(10, 4) NULL,
+    automation_comparison ENUM('GT', 'LT') NULL,
+    automation_last_triggered_date DATE NULL,
     
     PRIMARY KEY (device_id),
     CONSTRAINT fk_houseid FOREIGN KEY (house_id) REFERENCES houses(house_id)
